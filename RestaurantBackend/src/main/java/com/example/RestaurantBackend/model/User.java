@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+
 @Entity
 @Table(name = "users")
 @Data
@@ -36,14 +37,19 @@ public class User {
     private String lastName;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.CUSTOMER;
 
-    @Column(name = "email_verified")
+    @Column(name = "email_verified", nullable = false)
     @Builder.Default
     private Boolean emailVerified = false;
 
     @Column(name = "email_verification_token")
     private String emailVerificationToken;
+
+    @Column(name = "verification_token_expiry")
+    private LocalDateTime verificationTokenExpiry;
 
     @Column(name = "password_reset_token")
     private String passwordResetToken;
@@ -54,7 +60,8 @@ public class User {
     private String avatar;
 
     @Enumerated(EnumType.STRING)
-    private DataStatus status;
+    @Builder.Default
+    private DataStatus status = DataStatus.ACTIVE;
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
