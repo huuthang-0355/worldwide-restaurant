@@ -1,6 +1,7 @@
 package com.example.RestaurantBackend.service;
 
 import com.example.RestaurantBackend.dto.request.auth.*;
+import com.example.RestaurantBackend.dto.request.user.UpdatePasswordRequest;
 import com.example.RestaurantBackend.dto.response.AuthResponse;
 import com.example.RestaurantBackend.dto.response.CheckEmailResponse;
 import com.example.RestaurantBackend.dto.response.LoginResponse;
@@ -274,6 +275,41 @@ public class AuthService {
             return MessageResponse.error("Password reset failed: " + e.getMessage());
         }
 
+    }
+
+    // update password
+    public MessageResponse updatePassword(UUID userId, UpdatePasswordRequest request) {
+        try {
+
+            // validate password confirmation
+            if(!request.getNewPassword().equals(request.getConfirmPassword()))
+                return MessageResponse.error("New passwords do not match");
+
+            // find user
+            Optional<User> optionalUser = userRepo.findById(userId);
+
+            if(optionalUser.isEmpty())
+                return MessageResponse.error("User not found");
+
+            User user = optionalUser.get();
+
+            // verify current password
+            if(!encoder.matches(request.getCurrentPassword(), user.getPassword()))
+                return MessageResponse.error("Current password is incorrect");
+
+            // check if new password is the same as old
+            if(encoder.matches(request.getNewPassword(), user.getPassword()))
+                return MessageResponse.error("New password must be different from current password");
+
+            // update password
+            user.setPassword(encoder.encode(request.getNewPassword()));
+            userRepo.save(user);
+
+            return MessageResponse.success("Password updated successfully");
+        } catch (Exception e) {
+
+            return MessageResponse.error("Failed to update password: " + e.getMessage());
+        }
     }
 
 }

@@ -1,16 +1,19 @@
 package com.example.RestaurantBackend.controller;
 
 import com.example.RestaurantBackend.dto.request.auth.*;
+import com.example.RestaurantBackend.dto.request.user.UpdatePasswordRequest;
 import com.example.RestaurantBackend.dto.response.AuthResponse;
 import com.example.RestaurantBackend.dto.response.CheckEmailResponse;
 import com.example.RestaurantBackend.dto.response.LoginResponse;
 import com.example.RestaurantBackend.dto.response.MessageResponse;
+import com.example.RestaurantBackend.model.UserPrincipal;
 import com.example.RestaurantBackend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -74,5 +77,16 @@ public class AuthController {
             return new ResponseEntity<>(response, HttpStatus.OK);
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @PutMapping("/update-password")
+    public ResponseEntity<MessageResponse> updatePassword(@AuthenticationPrincipal UserPrincipal principal,
+                                                          @Valid @RequestBody UpdatePasswordRequest request) {
+        MessageResponse response = authService.updatePassword(principal.getUser().getId(), request);
+
+        if(!response.getSuccess())
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
