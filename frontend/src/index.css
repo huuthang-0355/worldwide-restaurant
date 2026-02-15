@@ -1,1 +1,32 @@
 @import "tailwindcss";
+
+/* Custom Theme - Primary Color: #e74c3c */
+@theme {
+    --color-primary-50: #fef2f2;
+    --color-primary-100: #fee2e1;
+    --color-primary-200: #fecaca;
+    --color-primary-300: #fca5a4;
+    --color-primary-400: #f87171;
+    --color-primary-500: #e74c3c;
+    --color-primary-600: #c0392b;
+    --color-primary-700: #a93226;
+    --color-primary-800: #8b2920;
+    --color-primary-900: #742320;
+    --color-primary-950: #3f0f0d;
+}
+
+/* Toast animation */
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+}

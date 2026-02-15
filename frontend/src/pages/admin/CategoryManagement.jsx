@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useCategory } from "../../context/useCategory";
+import { useToast } from "../../context/useToast";
 import CategoryCard from "../../components/admin/CategoryCard";
 import CategoryForm from "../../components/admin/CategoryForm";
 import CategoryList from "../../components/admin/CategoryList";
@@ -24,6 +25,7 @@ function CategoryManagement() {
         updateCategory,
         updateCategoryStatus,
     } = useCategory();
+    const toast = useToast();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -36,8 +38,11 @@ function CategoryManagement() {
         try {
             await createCategory(formData);
             closeForm();
+            toast.success("Category created successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to create category");
+            toast.error(
+                err.response?.data?.message || "Failed to create category",
+            );
         }
     };
 
@@ -45,16 +50,22 @@ function CategoryManagement() {
         try {
             await updateCategory(selectedCategory.id, formData);
             closeForm();
+            toast.success("Category updated successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to update category");
+            toast.error(
+                err.response?.data?.message || "Failed to update category",
+            );
         }
     };
 
     const handleToggleStatus = async (id, newStatus) => {
         try {
             await updateCategoryStatus(id, newStatus);
+            toast.success("Status updated successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to update status");
+            toast.error(
+                err.response?.data?.message || "Failed to update status",
+            );
         }
     };
 

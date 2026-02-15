@@ -98,7 +98,7 @@ function MenuItemModifierSelector({
                             <Card
                                 className={`flex items-center gap-3 p-3 ${
                                     isSelected
-                                        ? "ring-2 ring-blue-500 bg-blue-50"
+                                        ? "ring-2 ring-primary-500 bg-primary-50"
                                         : "hover:bg-gray-50"
                                 }`}
                             >
@@ -106,7 +106,7 @@ function MenuItemModifierSelector({
                                 <div
                                     className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                                         isSelected
-                                            ? "bg-blue-600 border-blue-600"
+                                            ? "bg-primary-500 border-primary-500"
                                             : "border-gray-300"
                                     }`}
                                 >
@@ -119,14 +119,14 @@ function MenuItemModifierSelector({
                                 <div
                                     className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
                                         isSelected
-                                            ? "bg-blue-100"
+                                            ? "bg-primary-100"
                                             : "bg-gray-100"
                                     }`}
                                 >
                                     <Settings2
                                         className={`w-5 h-5 ${
                                             isSelected
-                                                ? "text-blue-600"
+                                                ? "text-primary-500"
                                                 : "text-gray-400"
                                         }`}
                                     />

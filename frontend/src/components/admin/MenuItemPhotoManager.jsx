@@ -12,13 +12,13 @@ function MenuItemPhotoManager({ menuItem, onPhotosUpdate }) {
 
     if (!menuItem || !menuItem.id) {
         return (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 flex items-start gap-3">
+                <Info className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" />
                 <div>
-                    <p className="text-sm text-blue-700 font-medium mb-1">
+                    <p className="text-sm text-primary-600 font-medium mb-1">
                         Save item first
                     </p>
-                    <p className="text-sm text-blue-600">
+                    <p className="text-sm text-primary-500">
                         Photos can be added after saving the menu item.
                     </p>
                 </div>

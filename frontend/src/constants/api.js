@@ -1,6 +1,32 @@
 // API Configuration
 export const API_BASE_URL = "http://localhost:8080/api";
 
+// Authentication Endpoints
+export const AUTH_ENDPOINTS = {
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    VERIFY_EMAIL: "/auth/verify-email",
+    CHECK_EMAIL: "/auth/check-email",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+    RESET_PASSWORD: "/auth/reset-password",
+    UPDATE_PASSWORD: "/auth/update-password",
+};
+
+// User Endpoints
+export const USER_ENDPOINTS = {
+    PROFILE: "/users/profile",
+    AVATAR: "/users/avatar",
+    STAFF: "/users/staff",
+    STAFF_BY_ID: (id) => `/users/staff/${id}`,
+    STAFF_STATUS: (id) => `/users/staff/${id}/status`,
+};
+
+// Storage keys for tokens
+export const STORAGE_KEYS = {
+    STAFF_TOKEN: "staffToken",
+    CUSTOMER_TOKEN: "customerToken",
+};
+
 // Admin API Endpoints
 export const ADMIN_ENDPOINTS = {
     // Categories

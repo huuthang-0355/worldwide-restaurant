@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
     LayoutDashboard,
     ClipboardList,
@@ -10,13 +10,17 @@ import {
     Monitor,
     LogOut,
     UtensilsCrossed,
+    User,
 } from "lucide-react";
 import Badge from "../ui/Badge";
+import { useAuth } from "../../context/useAuth";
 
 /**
  * AdminSidebar - Refactored navigation sidebar with lucide icons
  */
 function AdminSidebar() {
+    const navigate = useNavigate();
+    const { staffUser, staffLogout } = useAuth();
     const navItems = [
         { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         {
@@ -39,7 +43,7 @@ function AdminSidebar() {
             {/* Logo */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center gap-2">
-                    <Utensils className="w-8 h-8 text-blue-600" />
+                    <Utensils className="w-8 h-8 text-primary-500" />
                     <span className="text-xl font-bold text-gray-800">
                         Smart Restaurant
                     </span>
@@ -57,7 +61,7 @@ function AdminSidebar() {
                             className={({ isActive }) =>
                                 `flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors relative ${
                                     isActive
-                                        ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
+                                        ? "bg-primary-50 text-primary-600 border-r-4 border-primary-600"
                                         : ""
                                 }`
                             }
@@ -76,20 +80,35 @@ function AdminSidebar() {
 
             {/* User Profile */}
             <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                        JD
+                <NavLink
+                    to="/admin/profile"
+                    className={({ isActive }) =>
+                        `flex items-center gap-3 mb-3 p-2 rounded-lg hover:bg-gray-50 transition-colors ${
+                            isActive ? "bg-primary-50" : ""
+                        }`
+                    }
+                >
+                    <div className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold">
+                        {staffUser?.firstName?.[0] || "U"}
+                        {staffUser?.lastName?.[0] || ""}
                     </div>
                     <div className="flex-1">
                         <div className="text-sm font-semibold text-gray-800">
-                            John Doe
+                            {staffUser?.firstName || "User"}{" "}
+                            {staffUser?.lastName || ""}
                         </div>
                         <div className="text-xs text-gray-500">
-                            Restaurant Admin
+                            {staffUser?.role?.replace("_", " ") || "Staff"}
                         </div>
                     </div>
-                </div>
-                <button className="w-full flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors text-sm">
+                </NavLink>
+                <button
+                    onClick={() => {
+                        staffLogout();
+                        navigate("/admin/login");
+                    }}
+                    className="w-full flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors text-sm"
+                >
                     <LogOut className="w-4 h-4" />
                     <span>Logout</span>
                 </button>
