@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.hibernate.annotations.DialectOverride;
 
@@ -22,9 +24,10 @@ public class MenuItem {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(150)")
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -40,9 +43,13 @@ public class MenuItem {
     private Boolean isChefRecommended;
 
     @Column(name = "is_deleted")
-
     @Builder.Default
     private Boolean isDeleted = false;
+
+     @Column(name = "popularity_score")
+     @Min(value = 0)
+     @Builder.Default
+     private Integer popularityScore = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore

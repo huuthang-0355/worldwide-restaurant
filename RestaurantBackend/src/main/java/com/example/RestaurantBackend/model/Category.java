@@ -1,6 +1,7 @@
 package com.example.RestaurantBackend.model;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import lombok.*;
 
 import java.util.Date;
