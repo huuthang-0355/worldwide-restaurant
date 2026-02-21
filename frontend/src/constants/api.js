@@ -57,4 +57,13 @@ export const ADMIN_ENDPOINTS = {
 
     // Modifier Options
     MODIFIER_OPTION_BY_ID: (id) => `/admin/menu/modifier-options/${id}`,
+
+    // Tables
+    TABLES: "/admin/tables",
+    TABLE_BY_ID: (id) => `/admin/tables/${id}`,
+    TABLE_STATUS: (id) => `/admin/tables/${id}/status`,
+    TABLE_QR_GENERATE: (id) => `/admin/tables/${id}/qr/generate`,
+    TABLE_QR_REGENERATE: (id) => `/admin/tables/${id}/qr/regenerate`,
+    TABLE_QR_DOWNLOAD: (id) => `/admin/tables/${id}/qr/download`,
+    TABLES_QR_DOWNLOAD_ALL: "/admin/tables/qr/download-all",
 };

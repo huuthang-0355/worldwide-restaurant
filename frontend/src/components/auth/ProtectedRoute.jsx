@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import { setPortalContext } from "../../services/apiClient";
 import LoadingSpinner from "../common/LoadingSpinner";
 
 /**
@@ -9,6 +11,13 @@ import LoadingSpinner from "../common/LoadingSpinner";
 function ProtectedRoute({ children, allowedRoles = [] }) {
     const { staffUser, isStaffAuthenticated, loading } = useAuth();
     const location = useLocation();
+
+    // Ensure portal context is "staff" for all admin API calls
+    useEffect(() => {
+        if (isStaffAuthenticated) {
+            setPortalContext("staff");
+        }
+    }, [isStaffAuthenticated]);
 
     if (loading) {
         return (

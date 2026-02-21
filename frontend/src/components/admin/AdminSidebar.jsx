@@ -9,7 +9,7 @@ import {
     BarChart3,
     Monitor,
     LogOut,
-    UtensilsCrossed,
+    LayoutGrid,
     User,
 } from "lucide-react";
 import Badge from "../ui/Badge";
@@ -32,7 +32,7 @@ function AdminSidebar() {
         { path: "/admin/menu", icon: Utensils, label: "Menu Items" },
         { path: "/admin/categories", icon: FolderOpen, label: "Categories" },
         { path: "/admin/modifiers", icon: Settings2, label: "Modifiers" },
-        { path: "/admin/tables", icon: UtensilsCrossed, label: "Tables" },
+        { path: "/admin/tables", icon: LayoutGrid, label: "Tables" },
         { path: "/admin/staff", icon: Users, label: "Kitchen Staff" },
         { path: "/admin/reports", icon: BarChart3, label: "Reports" },
         { path: "/admin/kds", icon: Monitor, label: "Kitchen Display" },
