@@ -67,3 +67,9 @@ export const ADMIN_ENDPOINTS = {
     TABLE_QR_DOWNLOAD: (id) => `/admin/tables/${id}/qr/download`,
     TABLES_QR_DOWNLOAD_ALL: "/admin/tables/qr/download-all",
 };
+
+// Customer / Public Endpoints (no auth required — use QR token as query param)
+export const CUSTOMER_ENDPOINTS = {
+    MENU_VERIFY: "/menu",
+    MENU_ITEMS: "/menu/items",
+};

@@ -10,9 +10,11 @@ import { ModifierProvider } from "./context/ModifierContext";
 import { TableProvider } from "./context/TableContext";
 import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthContext";
+import { CustomerMenuProvider } from "./context/CustomerMenuContext";
 import ToastContainer from "./components/common/ToastContainer";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
+import CustomerLayout from "./components/customer/CustomerLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import MenuManagement from "./pages/admin/MenuManagementRefactored";
 import CategoryManagement from "./pages/admin/CategoryManagement";
@@ -20,6 +22,9 @@ import ModifierManagement from "./pages/admin/ModifierManagement";
 import StaffManagement from "./pages/admin/StaffManagement";
 import StaffProfile from "./pages/admin/StaffProfile";
 import TableManagement from "./pages/admin/TableManagement";
+import QrLanding from "./pages/customer/QrLanding";
+import CustomerMenu from "./pages/customer/CustomerMenu";
+import ItemDetail from "./pages/customer/ItemDetail";
 import StaffLogin from "./pages/auth/StaffLogin";
 import CustomerLogin from "./pages/auth/CustomerLogin";
 import CustomerRegister from "./pages/auth/CustomerRegister";
@@ -154,6 +159,29 @@ function App() {
                                             <Route
                                                 path="profile"
                                                 element={<StaffProfile />}
+                                            />
+                                        </Route>
+
+                                        {/* Customer Routes (Public — QR-based) */}
+                                        <Route
+                                            path="/menu"
+                                            element={
+                                                <CustomerMenuProvider>
+                                                    <CustomerLayout />
+                                                </CustomerMenuProvider>
+                                            }
+                                        >
+                                            <Route
+                                                index
+                                                element={<QrLanding />}
+                                            />
+                                            <Route
+                                                path="browse"
+                                                element={<CustomerMenu />}
+                                            />
+                                            <Route
+                                                path="item/:id"
+                                                element={<ItemDetail />}
                                             />
                                         </Route>
 
