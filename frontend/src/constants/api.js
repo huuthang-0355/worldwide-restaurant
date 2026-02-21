@@ -1,6 +1,32 @@
 // API Configuration
 export const API_BASE_URL = "http://localhost:8080/api";
 
+// Authentication Endpoints
+export const AUTH_ENDPOINTS = {
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    VERIFY_EMAIL: "/auth/verify-email",
+    CHECK_EMAIL: "/auth/check-email",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+    RESET_PASSWORD: "/auth/reset-password",
+    UPDATE_PASSWORD: "/auth/update-password",
+};
+
+// User Endpoints
+export const USER_ENDPOINTS = {
+    PROFILE: "/users/profile",
+    AVATAR: "/users/avatar",
+    STAFF: "/users/staff",
+    STAFF_BY_ID: (id) => `/users/staff/${id}`,
+    STAFF_STATUS: (id) => `/users/staff/${id}/status`,
+};
+
+// Storage keys for tokens
+export const STORAGE_KEYS = {
+    STAFF_TOKEN: "staffToken",
+    CUSTOMER_TOKEN: "customerToken",
+};
+
 // Admin API Endpoints
 export const ADMIN_ENDPOINTS = {
     // Categories
@@ -31,4 +57,13 @@ export const ADMIN_ENDPOINTS = {
 
     // Modifier Options
     MODIFIER_OPTION_BY_ID: (id) => `/admin/menu/modifier-options/${id}`,
+
+    // Tables
+    TABLES: "/admin/tables",
+    TABLE_BY_ID: (id) => `/admin/tables/${id}`,
+    TABLE_STATUS: (id) => `/admin/tables/${id}/status`,
+    TABLE_QR_GENERATE: (id) => `/admin/tables/${id}/qr/generate`,
+    TABLE_QR_REGENERATE: (id) => `/admin/tables/${id}/qr/regenerate`,
+    TABLE_QR_DOWNLOAD: (id) => `/admin/tables/${id}/qr/download`,
+    TABLES_QR_DOWNLOAD_ALL: "/admin/tables/qr/download-all",
 };

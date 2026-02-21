@@ -61,7 +61,7 @@ function PhotoGallery({ photos = [], onSetPrimary, onDelete }) {
                         key={photo.id}
                         className={`relative group border-2 rounded-lg overflow-hidden ${
                             photo.isPrimary
-                                ? "border-blue-500"
+                                ? "border-primary-500"
                                 : "border-gray-200"
                         }`}
                     >

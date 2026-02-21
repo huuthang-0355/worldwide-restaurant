@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import menuService from "../../services/menuService";
+import { useToast } from "../../context/useToast";
 import MenuCard from "../../components/admin/MenuCard";
 import MenuItemEditor from "../../components/admin/MenuItemEditor";
 import Modal from "../../components/common/Modal";
@@ -12,6 +13,7 @@ import { MENU_STATUS } from "../../constants/menuStatus";
  * MenuManagement - Main page for managing menu items
  */
 function MenuManagement() {
+    const toast = useToast();
     // State management
     const [menuItems, setMenuItems] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -64,8 +66,11 @@ function MenuManagement() {
             setMenuItems((prev) => [newItem, ...prev]);
             setIsFormModalOpen(false);
             setSelectedItem(null);
+            toast.success("Menu item created successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to create menu item");
+            toast.error(
+                err.response?.data?.message || "Failed to create menu item",
+            );
             console.error("Error creating item:", err);
         }
     };
@@ -84,8 +89,11 @@ function MenuManagement() {
             );
             setIsFormModalOpen(false);
             setSelectedItem(null);
+            toast.success("Menu item updated successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to update menu item");
+            toast.error(
+                err.response?.data?.message || "Failed to update menu item",
+            );
             console.error("Error updating item:", err);
         }
     };
@@ -98,8 +106,11 @@ function MenuManagement() {
                 prev.filter((item) => item.id !== selectedItem.id),
             );
             setSelectedItem(null);
+            toast.success("Menu item deleted successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to delete menu item");
+            toast.error(
+                err.response?.data?.message || "Failed to delete menu item",
+            );
             console.error("Error deleting item:", err);
         }
     };
@@ -206,7 +217,7 @@ function MenuManagement() {
                         setSelectedItem(null);
                         setIsFormModalOpen(true);
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
                 >
                     + Add Menu Item
                 </button>
@@ -232,7 +243,7 @@ function MenuManagement() {
                             placeholder="Search menu items..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                     </div>
                 </div>
@@ -241,7 +252,7 @@ function MenuManagement() {
                 <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                     <option value="">All Categories</option>
                     {categories.map((category) => (
@@ -255,7 +266,7 @@ function MenuManagement() {
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                     <option value="">All Status</option>
                     <option value={MENU_STATUS.AVAILABLE}>Available</option>
@@ -267,7 +278,7 @@ function MenuManagement() {
                 <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                     <option value="newest">Sort by: Newest</option>
                     <option value="name">Sort by: Name</option>
@@ -285,7 +296,7 @@ function MenuManagement() {
                             setSelectedItem(null);
                             setIsFormModalOpen(true);
                         }}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
                     >
                         Create Your First Item
                     </button>

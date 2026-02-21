@@ -22,7 +22,7 @@ function ModifierOptionItem({ option, onUpdate }) {
 
     if (editing) {
         return (
-            <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 p-2 bg-primary-50 rounded-lg">
                 <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -131,7 +131,7 @@ function ModifierOptionList({
             ) : (
                 <button
                     onClick={() => setAdding(true)}
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 px-2 py-1"
+                    className="flex items-center gap-1 text-sm text-primary-500 hover:text-primary-600 px-2 py-1"
                 >
                     <Plus className="w-3.5 h-3.5" />
                     Add option

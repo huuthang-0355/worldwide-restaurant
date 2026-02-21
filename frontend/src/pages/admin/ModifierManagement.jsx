@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { useModifier } from "../../context/useModifier";
+import { useToast } from "../../context/useToast";
 import ModifierGroupCard from "../../components/admin/ModifierGroupCard";
 import ModifierGroupForm from "../../components/admin/ModifierGroupForm";
 import PageHeader from "../../components/admin/PageHeader";
@@ -15,6 +16,7 @@ import Input from "../../components/ui/Input";
  * ModifierManagement - CRUD page for modifier groups & options
  */
 function ModifierManagement() {
+    const toast = useToast();
     const {
         modifierGroups,
         loading,
@@ -39,8 +41,9 @@ function ModifierManagement() {
         try {
             await createModifierGroup(data);
             closeForm();
+            toast.success("Modifier group created successfully");
         } catch (err) {
-            alert(
+            toast.error(
                 err.response?.data?.message ||
                     "Failed to create modifier group",
             );
@@ -51,8 +54,9 @@ function ModifierManagement() {
         try {
             await updateModifierGroup(selectedGroup.id, data);
             closeForm();
+            toast.success("Modifier group updated successfully");
         } catch (err) {
-            alert(
+            toast.error(
                 err.response?.data?.message ||
                     err.response?.data ||
                     "Failed to update modifier group",
@@ -63,16 +67,20 @@ function ModifierManagement() {
     const handleAddOption = async (groupId, data) => {
         try {
             await createModifierOption(groupId, data);
+            toast.success("Option added successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to add option");
+            toast.error(err.response?.data?.message || "Failed to add option");
         }
     };
 
     const handleUpdateOption = async (groupId, optionId, data) => {
         try {
             await updateModifierOption(groupId, optionId, data);
+            toast.success("Option updated successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to update option");
+            toast.error(
+                err.response?.data?.message || "Failed to update option",
+            );
         }
     };
 

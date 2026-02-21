@@ -18,11 +18,11 @@ function CategoryCard({ category, onEdit, onToggleStatus }) {
             {/* Icon */}
             <div
                 className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                    isActive ? "bg-blue-100" : "bg-gray-100"
+                    isActive ? "bg-primary-100" : "bg-gray-100"
                 }`}
             >
                 <FolderOpen
-                    className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-400"}`}
+                    className={`w-5 h-5 ${isActive ? "text-primary-500" : "text-gray-400"}`}
                 />
             </div>
 

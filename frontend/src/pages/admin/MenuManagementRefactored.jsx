@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useMenu } from "../../context/useMenu";
 import { useModifier } from "../../context/useModifier";
+import { useToast } from "../../context/useToast";
 import MenuCard from "../../components/admin/MenuCard";
 import MenuItemEditor from "../../components/admin/MenuItemEditor";
 import MenuFilters from "../../components/admin/MenuFilters";
@@ -19,6 +20,7 @@ import { MENU_STATUS } from "../../constants/menuStatus";
  * MenuManagement - Refactored with Context API and small components
  */
 function MenuManagement() {
+    const toast = useToast();
     const {
         menuItems,
         categories,
@@ -62,8 +64,11 @@ function MenuManagement() {
             await createMenuItem(formData);
             setIsFormModalOpen(false);
             setSelectedItem(null);
+            toast.success("Menu item created successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to create menu item");
+            toast.error(
+                err.response?.data?.message || "Failed to create menu item",
+            );
         }
     };
 
@@ -72,8 +77,11 @@ function MenuManagement() {
             await updateMenuItem(selectedItem.id, formData);
             setIsFormModalOpen(false);
             setSelectedItem(null);
+            toast.success("Menu item updated successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to update menu item");
+            toast.error(
+                err.response?.data?.message || "Failed to update menu item",
+            );
         }
     };
 
@@ -81,8 +89,11 @@ function MenuManagement() {
         try {
             await deleteMenuItem(selectedItem.id);
             setSelectedItem(null);
+            toast.success("Menu item deleted successfully");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to delete menu item");
+            toast.error(
+                err.response?.data?.message || "Failed to delete menu item",
+            );
         }
     };
 
@@ -106,8 +117,9 @@ function MenuManagement() {
                 modifierGroupIds,
             );
             setSelectedItem(updatedItem);
+            toast.success("Modifier groups updated successfully");
         } catch (err) {
-            alert(
+            toast.error(
                 err.response?.data?.message ||
                     "Failed to assign modifier groups",
             );

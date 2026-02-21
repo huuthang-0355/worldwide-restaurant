@@ -17,8 +17,8 @@ function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-blue-100 rounded-lg">
-                            <TrendingUp className="w-6 h-6 text-blue-600" />
+                        <div className="p-3 bg-primary-100 rounded-lg">
+                            <TrendingUp className="w-6 h-6 text-primary-500" />
                         </div>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800">$0</h3>
@@ -42,7 +42,9 @@ function Dashboard() {
                         </div>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800">0</h3>
-                    <p className="text-sm text-gray-600 mt-1">Customers Today</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                        Customers Today
+                    </p>
                 </Card>
 
                 <Card className="p-6">
@@ -52,7 +54,9 @@ function Dashboard() {
                         </div>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800">0</h3>
-                    <p className="text-sm text-gray-600 mt-1">Tables Occupied</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                        Tables Occupied
+                    </p>
                 </Card>
             </div>
 
