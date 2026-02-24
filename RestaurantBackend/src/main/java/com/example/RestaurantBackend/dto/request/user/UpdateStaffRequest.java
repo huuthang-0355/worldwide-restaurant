@@ -1,6 +1,6 @@
 package com.example.RestaurantBackend.dto.request.user;
 
-import com.example.RestaurantBackend.model.Role;
+import com.example.RestaurantBackend.model.enums.Role;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,13 +1,12 @@
 package com.example.RestaurantBackend.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.example.RestaurantBackend.model.enums.MenuItemStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import lombok.*;
-import org.hibernate.annotations.DialectOverride;
 
 import java.math.BigDecimal;
 import java.util.List;

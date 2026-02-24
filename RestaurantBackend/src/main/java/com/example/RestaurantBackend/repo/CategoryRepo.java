@@ -1,9 +1,7 @@
 package com.example.RestaurantBackend.repo;
 
 import com.example.RestaurantBackend.model.Category;
-import com.example.RestaurantBackend.model.DataStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

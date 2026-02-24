@@ -1,6 +1,6 @@
 package com.example.RestaurantBackend.dto.response;
 
-import com.example.RestaurantBackend.model.Role;
+import com.example.RestaurantBackend.model.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

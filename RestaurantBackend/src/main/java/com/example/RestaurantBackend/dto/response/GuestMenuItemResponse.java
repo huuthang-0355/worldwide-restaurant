@@ -1,8 +1,8 @@
 package com.example.RestaurantBackend.dto.response;
 
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.MenuItem;
-import com.example.RestaurantBackend.model.MenuItemStatus;
+import com.example.RestaurantBackend.model.enums.MenuItemStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

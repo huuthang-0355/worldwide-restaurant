@@ -1,8 +1,8 @@
 package com.example.RestaurantBackend.model;
 
-import lombok.Data;
+import com.example.RestaurantBackend.model.enums.DataStatus;
+import com.example.RestaurantBackend.model.enums.Role;
 import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

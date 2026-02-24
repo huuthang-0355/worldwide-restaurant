@@ -4,7 +4,7 @@ import com.example.RestaurantBackend.dto.request.table.CreateTableRequest;
 import com.example.RestaurantBackend.dto.request.table.UpdateTableRequest;
 import com.example.RestaurantBackend.dto.request.table.UpdateTableStatusRequest;
 import com.example.RestaurantBackend.dto.response.*;
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.Table;
 import com.example.RestaurantBackend.repo.TableRepo;
 import com.google.zxing.WriterException;
@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

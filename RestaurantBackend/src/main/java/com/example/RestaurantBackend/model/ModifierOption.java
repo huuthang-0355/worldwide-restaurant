@@ -1,5 +1,6 @@
 package com.example.RestaurantBackend.model;
 
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;

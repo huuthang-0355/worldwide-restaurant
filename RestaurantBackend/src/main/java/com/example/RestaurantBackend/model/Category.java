@@ -1,10 +1,10 @@
 package com.example.RestaurantBackend.model;
 
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import lombok.*;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 

@@ -1,8 +1,7 @@
 package com.example.RestaurantBackend.repo;
 
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.MenuItem;
-import com.example.RestaurantBackend.model.MenuItemStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

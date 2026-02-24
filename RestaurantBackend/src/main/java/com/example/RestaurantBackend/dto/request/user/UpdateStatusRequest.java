@@ -1,6 +1,6 @@
 package com.example.RestaurantBackend.dto.request.user;
 
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

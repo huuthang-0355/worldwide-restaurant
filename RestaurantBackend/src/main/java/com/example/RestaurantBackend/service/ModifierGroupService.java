@@ -3,13 +3,12 @@ package com.example.RestaurantBackend.service;
 import com.example.RestaurantBackend.dto.request.modifier_group.ModifierGroupRequest;
 import com.example.RestaurantBackend.dto.request.modifier_group.ModifierGroupUpdateRequest;
 import com.example.RestaurantBackend.dto.request.modifier_option.ModifierOptionRequest;
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.ModifierGroup;
 import com.example.RestaurantBackend.model.ModifierOption;
-import com.example.RestaurantBackend.model.SelectionType;
+import com.example.RestaurantBackend.model.enums.SelectionType;
 import com.example.RestaurantBackend.repo.ModifierGroupRepo;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

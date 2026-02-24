@@ -4,7 +4,7 @@ import com.example.RestaurantBackend.dto.response.GuestCategoryResponse;
 import com.example.RestaurantBackend.dto.response.GuestMenuItemResponse;
 import com.example.RestaurantBackend.dto.response.GuestMenuResponse;
 import com.example.RestaurantBackend.dto.response.MenuAccessResponse;
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.MenuItem;
 import com.example.RestaurantBackend.model.ModifierGroup;
 import com.example.RestaurantBackend.repo.CategoryRepo;

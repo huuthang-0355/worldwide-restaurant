@@ -1,4 +1,4 @@
-package com.example.RestaurantBackend.model;
+package com.example.RestaurantBackend.model.enums;
 
 public enum MenuItemStatus {
     AVAILABLE,

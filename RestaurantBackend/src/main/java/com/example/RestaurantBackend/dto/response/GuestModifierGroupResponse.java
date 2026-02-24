@@ -1,8 +1,8 @@
 package com.example.RestaurantBackend.dto.response;
 
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.ModifierGroup;
-import com.example.RestaurantBackend.model.SelectionType;
+import com.example.RestaurantBackend.model.enums.SelectionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor

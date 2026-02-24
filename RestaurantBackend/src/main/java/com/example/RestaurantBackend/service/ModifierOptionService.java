@@ -2,7 +2,7 @@ package com.example.RestaurantBackend.service;
 
 import com.example.RestaurantBackend.dto.request.modifier_option.ModifierOptionRequest;
 import com.example.RestaurantBackend.dto.request.modifier_option.ModifierOptionUpdateRequest;
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.ModifierGroup;
 import com.example.RestaurantBackend.model.ModifierOption;
 import com.example.RestaurantBackend.repo.ModifierGroupRepo;
@@ -11,7 +11,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.UUID;
 
 @Service

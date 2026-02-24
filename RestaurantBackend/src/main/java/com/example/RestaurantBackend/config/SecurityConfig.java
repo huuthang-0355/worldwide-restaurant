@@ -101,6 +101,7 @@ public class SecurityConfig {
                             "/api/auth/check-email",
                             "/api/auth/forgot-password",
                             "/api/auth/reset-password",
+                            "/api/sessions/**",
                             "/api/menu/**"
                     ).permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")

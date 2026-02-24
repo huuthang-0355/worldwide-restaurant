@@ -1,7 +1,7 @@
 package com.example.RestaurantBackend.repo;
 
-import com.example.RestaurantBackend.model.DataStatus;
-import com.example.RestaurantBackend.model.Role;
+import com.example.RestaurantBackend.model.enums.DataStatus;
+import com.example.RestaurantBackend.model.enums.Role;
 import com.example.RestaurantBackend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

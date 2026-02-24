@@ -1,5 +1,6 @@
 package com.example.RestaurantBackend.model;
 
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

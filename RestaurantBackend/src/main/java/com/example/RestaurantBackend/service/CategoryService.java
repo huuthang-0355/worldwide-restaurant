@@ -3,7 +3,7 @@ package com.example.RestaurantBackend.service;
 import com.example.RestaurantBackend.dto.request.cateogry.CategoryRequest;
 import com.example.RestaurantBackend.dto.request.cateogry.CategoryUpdateRequest;
 import com.example.RestaurantBackend.model.Category;
-import com.example.RestaurantBackend.model.DataStatus;
+import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.repo.CategoryRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
