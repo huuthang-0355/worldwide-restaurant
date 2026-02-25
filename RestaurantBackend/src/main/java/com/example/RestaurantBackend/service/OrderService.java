@@ -185,9 +185,35 @@ public class OrderService {
 
         return OrderResponse.success(order);
     }
+    
+    @Transactional
+    public OrderResponse updateOrderStatus(UUID orderId, OrderStatus newStatus) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // validate state transition
+        if(!this.isValidStatusTransition(order.getStatus(), newStatus))
+            return OrderResponse.error("Invalid status transition from " + order.getStatus() + " to " + newStatus);
+
+        order.setStatus(newStatus);
+
+        // update timestamp based on status
+        switch (newStatus) {
+            case IN_KITCHEN -> order.setSentToKitchenAt(LocalDateTime.now());
+            case READY -> order.setReadyAt(LocalDateTime.now());
+            case SERVED -> order.setServedAt(LocalDateTime.now());
+        }
+
+        // update all oder items status accordingly
+        this.updateOrderItemStatus(order, newStatus);
+
+        order = orderRepo.save(order);
+
+        return OrderResponse.success(order);
+    }
 
     @Transactional
-    public void updateOrderStatus(Order order, OrderStatus orderStatus) {
+    public void updateOrderItemStatus(Order order, OrderStatus orderStatus) {
         OrderItemStatus itemStatus = switch (orderStatus) {
             case PENDING -> OrderItemStatus.PENDING;
             case ACCEPTED -> OrderItemStatus.ACCEPTED;
