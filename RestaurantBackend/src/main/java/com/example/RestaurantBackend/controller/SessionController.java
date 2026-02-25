@@ -1,10 +1,14 @@
 package com.example.RestaurantBackend.controller;
 
+import com.example.RestaurantBackend.dto.request.CheckoutRequest;
 import com.example.RestaurantBackend.dto.request.StartSessionRequest;
 import com.example.RestaurantBackend.dto.request.cart.AddCartItemRequest;
 import com.example.RestaurantBackend.dto.request.cart.UpdateCartItemRequest;
 import com.example.RestaurantBackend.dto.response.MessageResponse;
 import com.example.RestaurantBackend.dto.response.SessionResponse;
+import com.example.RestaurantBackend.dto.response.order.OrderListResponse;
+import com.example.RestaurantBackend.dto.response.order.OrderResponse;
+import com.example.RestaurantBackend.service.OrderService;
 import com.example.RestaurantBackend.service.SessionService;
 import com.sun.java.accessibility.util.GUIInitializedListener;
 import jakarta.validation.Valid;
@@ -21,6 +25,7 @@ import java.util.UUID;
 public class SessionController {
 
     private final SessionService sessionService;
+    private final OrderService orderService;
 
     @PostMapping
     public ResponseEntity<?> startSession(@Valid @RequestBody StartSessionRequest request) {
@@ -104,6 +109,40 @@ public class SessionController {
 
             return new ResponseEntity<>(MessageResponse.error("Failed to remove cart item " + e.getMessage()),
                     HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/{id}/checkout")
+    public ResponseEntity<?> checkout(@PathVariable("id") UUID sessionId,
+                                                  @Valid @RequestBody CheckoutRequest request) {
+        try {
+            OrderResponse response = orderService.checkout(sessionId, request);
+
+            if(!response.isSuccess())
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        }catch (Exception e) {
+
+            return new ResponseEntity<>(MessageResponse.error("Failed to checkout order " + e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{id}/orders")
+    public ResponseEntity<OrderListResponse> getOrdersBySessionId(@PathVariable("id") UUID sessionId) {
+
+        try {
+            OrderListResponse response = orderService.getOrdersBySessionId(sessionId);
+
+            if(!response.isSuccess())
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 }
