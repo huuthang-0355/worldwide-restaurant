@@ -17,4 +17,8 @@ public interface OrderRepo extends JpaRepository<Order, UUID> {
 
     boolean existsByOrderNumber(String orderNumber);
 
+    long countByStatus(OrderStatus status);
+
+    long countByStatusIn(List<OrderStatus> statuses);
+
 }
