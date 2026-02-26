@@ -623,43 +623,118 @@ public class TableAssignment {
 
 ---
 
-### Phase 5: Bill & Payment (Momo-Ready)
+### Phase 5: Bill & Payment with Momo Integration
 
 **Step 5.1: Create Payment DTOs**
 
-- `dto/request/payment/ProcessPaymentRequest.java` - method, notes
-- `dto/response/BillPreviewResponse.java` - Itemized bill
-- `dto/response/PaymentResponse.java` - Payment confirmation
-- `dto/response/MomoPaymentResponse.java` - QR code, deep link (future)
+Request DTOs:
+
+- `dto/request/payment/MomoPaymentRequest.java` - sessionId, returnUrl
+- `dto/request/payment/MomoCallbackRequest.java` - Full IPN payload from Momo
+
+Response DTOs:
+
+- `dto/response/BillPreviewResponse.java` - Itemized bill with totals
+- `dto/response/BillPreviewItemResponse.java` - Individual order line items
+- `dto/response/MomoPaymentResponse.java` - payUrl, deeplink, qrCodeUrl, requestId
+- `dto/response/MomoCallbackResponse.java` - Response to Momo IPN
+- `dto/response/PaymentResponse.java` - Payment status and details
+- `dto/response/PaymentStatusResponse.java` - Current payment state
 
 **Step 5.2: Create Bill Service**
 
 - Create `service/BillService.java`
-    - `previewBill()` - Calculate totals, taxes, service charge
-    - `requestBill()` - Update session status, notify waiter
-    - `generateBillPdf()` - Optional PDF generation
+    - `previewBill(sessionId)` - Calculate totals, tax, service charge from all orders
+    - `requestBill(sessionId)` - Update session status to BILL_REQUESTED
+    - `calculateSessionTotal(sessionId)` - Sum all order totals in session
+    - `generateBillPdf(sessionId)` - Optional PDF generation (using iText/PDFBox)
 
-**Step 5.3: Create Payment Service (Momo-Ready)**
+**Step 5.3: Create Momo Configuration**
 
-- Create `service/PaymentService.java`
-    - `initiatePayment()` - Create payment record
-    - `processPayment()` - Handle payment completion
-    - `closeSession()` - Mark session as COMPLETED
+- Create `config/MomoConfig.java`
+    - Load Momo credentials from application.properties
+    - Bean for OkHttpClient (HTTP client for Momo API)
+    - Bean for Gson (JSON serialization)
+    - Configuration validation on startup
 
-    // Future Momo methods (interface-ready)
-    - `initiateMomoPayment()` - Call Momo API, get QR
-    - `handleMomoCallback()` - Process Momo IPN callback
-    - `checkMomoStatus()` - Query payment status
+**Step 5.4: Create Momo Security Utility**
 
-**Step 5.4: Payment Gateway Interface (For Future)**
+- Create `util/MomoSecurityUtil.java`
+    - `signHmacSHA256(data, secretKey)` - Generate HMAC SHA256 signature
+    - `verifySignature(rawData, signature, secretKey)` - Verify Momo callback signature
+    - `buildRawSignature(params)` - Build signature string from parameters (alphabetically sorted)
+
+**Step 5.5: Create Momo Service**
+
+- Create `service/MomoService.java`
+    - `initiatePayment(sessionId, returnUrl)` - Create Momo payment request
+        - Generate unique requestId (PAY-YYYYMMDD-XXX)
+        - Calculate total from session orders
+        - Build Momo API request with signature
+        - Call Momo create payment endpoint
+        - Save Payment record with PROCESSING status
+        - Return MomoPaymentResponse with QR/deeplink
+    - `handleCallback(callbackRequest)` - Process Momo IPN callback
+        - Verify signature from Momo
+        - Find Payment by requestId
+        - Check idempotency (already processed?)
+        - Validate amount matches
+        - Update Payment based on resultCode
+        - Complete or fail session
+        - Return success response to Momo
+    - `checkPaymentStatus(paymentId)` - Query Momo for payment status
+        - Build query request with signature
+        - Call Momo query endpoint
+        - Return current status
+    - `verifyPayment(paymentId)` - Manual verification (admin tool)
+        - Query Momo API for transaction
+        - Reconcile with local Payment record
+        - Update if discrepancy found
+
+**Step 5.6: Create Momo DTOs (Internal)**
+
+- `dto/momo/MomoCreatePaymentRequest.java` - Request to Momo API
+- `dto/momo/MomoCreatePaymentResponse.java` - Response from Momo API
+- `dto/momo/MomoQueryRequest.java` - Query status request
+- `dto/momo/MomoQueryResponse.java` - Query status response
+
+**Step 5.7: Create Payment Controller**
+
+- Create `controller/MomoPaymentController.java`
+    - `POST /api/payments/momo/initiate` - Initiate payment (Public)
+    - `POST /api/payments/momo/callback` - IPN callback handler (Public, from Momo servers)
+    - `GET /api/payments/momo/{id}/status` - Check payment status (Public)
+    - `POST /api/payments/momo/{id}/verify` - Manual verification (ADMIN only)
+
+**Step 5.8: Update Session Service**
+
+- Add to `service/SessionService.java`
+    - `requestBill(sessionId)` - Update session status to BILL_REQUESTED
+    - `getBillPreview(sessionId)` - Calculate and return bill preview
+    - `closeSession(sessionId)` - Mark session as COMPLETED (called after payment)
+
+**Step 5.9: Create Payment Gateway Interface (Extensibility)**
 
 ```java
 public interface PaymentGateway {
     PaymentInitResponse initiate(PaymentRequest request);
     PaymentStatusResponse checkStatus(String transactionId);
-    void handleCallback(String payload, String signature);
+    CallbackResponse handleCallback(String payload, String signature);
 }
+
+// Implementations:
+// - MomoPaymentGateway (current)
+// - VNPayPaymentGateway (future)
+// - StripePaymentGateway (future)
 ```
+
+**Step 5.10: Error Handling & Retry**
+
+- Implement exponential backoff for Momo API calls
+- Handle timeout scenarios (15-minute payment window)
+- Log all Momo interactions for audit trail
+- Return 200 OK to Momo IPN even on errors (prevent spam)
+- Store failed payments for manual reconciliation
 
 ---
 
@@ -668,18 +743,59 @@ public interface PaymentGateway {
 **Step 6.1: Update SecurityConfig.java**
 
 ```java
-// Add to public endpoints
-"/api/sessions/**"  // Guest session management (validated by QR token)
+// Public endpoints (QR token validation applied in service layer)
+"/api/sessions/**"  // Guest session management
 
-// Add role-based endpoints
+// Payment endpoints
+"/api/payments/momo/callback"  // Momo IPN callback (signature validation in service)
+"/api/payments/momo/initiate"  // Payment initiation (QR token validation required)
+"/api/payments/momo/*/status"  // Payment status check (public)
+
+// Role-based endpoints
 .requestMatchers("/api/kitchen/**").hasRole("KITCHEN_STAFF")
 .requestMatchers("/api/waiter/**").hasRole("WAITER")
+.requestMatchers("/api/payments/momo/*/verify").hasRole("ADMIN")
 ```
 
 **Step 6.2: Session Token Validation**
 
 - Reuse `QrTokenService.validateToken()` for session endpoints
 - Add session ID validation to ensure guest owns the session
+- Apply QR validation to payment initiation endpoint
+
+**Step 6.3: Environment Configuration**
+
+Add to `application.properties` or `application.yml`:
+
+```properties
+# Momo Payment Gateway
+momo.partner-code=${MOMO_PARTNER_CODE:MOMOBKUN20180529}
+momo.access-key=${MOMO_ACCESS_KEY:klm05TvNBzhg7h7j}
+momo.secret-key=${MOMO_SECRET_KEY:at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa}
+momo.endpoint=${MOMO_ENDPOINT:https://test-payment.momo.vn}
+momo.redirect-url=${MOMO_REDIRECT_URL:http://localhost:3000/payment/result}
+momo.ipn-url=${MOMO_IPN_URL:https://your-domain.com/api/payments/momo/callback}
+
+# Payment Configuration
+payment.timeout-minutes=15
+payment.currency=VND
+payment.min-amount=10000
+payment.max-amount=50000000
+
+# Restaurant Business Rules
+restaurant.tax-rate=0.10
+restaurant.service-charge-rate=0.05
+restaurant.prep-time-alert-minutes=15
+restaurant.order-timeout-minutes=30
+```
+
+**Step 6.4: Signature Verification Middleware**
+
+- Implement `@Component MomoSignatureValidator`
+- Intercept all `/api/payments/momo/callback` requests
+- Verify HMAC SHA256 signature before processing
+- Reject invalid signatures with 401 Unauthorized
+- Log all signature validation attempts for security audit
 
 ---
 
@@ -705,44 +821,411 @@ Delivery:
 
 ---
 
-## 5. Momo Integration Architecture (Future)
+## 5. Momo Payment Integration
 
-### 5.1 Flow Design
+### 5.1 Overview
 
-```
-1. Guest requests bill → Session.status = BILL_REQUESTED
-2. Guest selects "Pay with Momo" → Call Momo API
-3. System creates Payment with:
-   - method = MOMO
-   - status = PROCESSING
-   - gatewayRequestId = our unique ID
-4. Momo returns QR code URL and deep link
-5. Guest scans QR or opens Momo app
-6. Momo sends IPN callback to our endpoint
-7. System verifies signature, updates Payment:
-   - status = COMPLETED
-   - gatewayTransactionId = Momo's ID
-8. Close session
-```
+Integration with Momo e-wallet using official Momo Payment SDK for Java.
 
-### 5.2 Required Endpoints (Future)
+- **SDK Repository**: https://github.com/momo-wallet/java
+- **Payment Method**: QR Code & App Deep Link
+- **Flow Type**: Asynchronous with IPN callback
+
+### 5.2 Payment Flow
+
+#### Complete Transaction Flow:
 
 ```
-POST /api/payments/momo/initiate     → Create Momo payment request
-POST /api/payments/momo/callback     → IPN callback (from Momo)
-GET  /api/payments/momo/{id}/status  → Check payment status
+1. Guest browses menu and adds items to cart
+   └─> Session created (SessionStatus.ACTIVE)
+
+2. Guest submits order (Checkout)
+   └─> Order created (OrderStatus.PENDING)
+   └─> Cart cleared
+
+3. Waiter reviews and accepts order
+   └─> Order status: ACCEPTED
+   └─> Waiter sends to kitchen
+
+4. Kitchen prepares food
+   └─> Order status: IN_KITCHEN → PREPARING → READY
+
+5. Waiter serves food
+   └─> Order status: SERVED
+   └─> Guest can now request bill
+
+6. Guest requests bill
+   ├─> POST /api/sessions/{id}/request-bill
+   └─> Session status: BILL_REQUESTED
+
+7. Guest previews bill
+   ├─> GET /api/sessions/{id}/bill-preview
+   └─> Returns itemized bill with totals
+
+8. Guest initiates Momo payment
+   ├─> POST /api/payments/momo/initiate
+   ├─> Body: { sessionId, returnUrl }
+   │
+   ├─> System generates unique orderId (PAY-YYYYMMDD-XXX)
+   ├─> System calls Momo API with payment details
+   │
+   └─> Momo returns:
+       ├─> payUrl (QR code URL for scanning)
+       ├─> deeplink (momo://app deep link)
+       ├─> qrCodeUrl (direct QR image)
+       └─> requestId (tracking ID)
+
+9. System saves Payment record
+   ├─> method: MOMO
+   ├─> status: PROCESSING
+   ├─> gatewayRequestId: Momo's requestId
+   ├─> qrCodeUrl: Momo's QR URL
+   ├─> deepLink: Momo's deep link
+   └─> Session status: PAYMENT_PENDING
+
+10. Frontend displays payment options
+    ├─> Option 1: Show QR code for scanning
+    ├─> Option 2: Deep link button (opens Momo app)
+    └─> Guest completes payment in Momo app
+
+11. Momo processes payment
+    └─> Sends IPN callback to our server
+
+12. IPN Callback received
+    ├─> POST /api/payments/momo/callback (from Momo servers)
+    ├─> Payload: { orderId, requestId, transId, resultCode, ... }
+    │
+    ├─> System verifies signature (security)
+    ├─> System validates resultCode:
+    │   ├─> 0 = Success
+    │   └─> Other = Failed
+    │
+    └─> System updates Payment:
+        ├─> status: COMPLETED (if success) or FAILED
+        ├─> gatewayTransactionId: Momo's transId
+        ├─> gatewayResponse: Full JSON response
+        ├─> gatewayCallbackAt: Current timestamp
+        └─> paidAt: Current timestamp (if success)
+
+13. If payment successful
+    ├─> Session status: COMPLETED
+    ├─> Session endedAt: Current timestamp
+    └─> Guest redirected to success page
+
+14. If payment failed
+    ├─> Session status: BILL_REQUESTED (revert)
+    ├─> Guest can retry payment
+    └─> Payment record kept for audit
 ```
 
-### 5.3 Environment Variables (Future)
+### 5.3 Momo API Integration
+
+#### Required Dependencies (pom.xml):
+
+```xml
+<dependency>
+    <groupId>com.squareup.okhttp3</groupId>
+    <artifactId>okhttp</artifactId>
+    <version>4.12.0</version>
+</dependency>
+<dependency>
+    <groupId>com.google.code.gson</groupId>
+    <artifactId>gson</artifactId>
+    <version>2.10.1</version>
+</dependency>
+<dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.16.0</version>
+</dependency>
+```
+
+#### Environment Configuration:
 
 ```properties
-momo.partner-code=PARTNER_CODE
-momo.access-key=ACCESS_KEY
-momo.secret-key=SECRET_KEY
-momo.endpoint=https://test-payment.momo.vn/v2/gateway/api
-momo.callback-url=${app.backend-url}/api/payments/momo/callback
-momo.return-url=${app.frontend-url}/payment/result
+# application.properties or application.yml
+
+# Momo Credentials (TEST environment)
+momo.partner-code=MOMOBKUN20180529
+momo.access-key=klm05TvNBzhg7h7j
+momo.secret-key=at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
+
+# Momo Endpoints
+momo.endpoint=https://test-payment.momo.vn/v2/gateway/api/create
+momo.query-endpoint=https://test-payment.momo.vn/v2/gateway/api/query
+
+# Application URLs
+momo.redirect-url=${app.frontend-url}/payment/result
+momo.ipn-url=${app.backend-url}/api/payments/momo/callback
+
+# Payment Settings
+momo.request-type=captureWallet
+momo.auto-capture=true
+momo.lang=en
+
+# Production: Replace with production credentials
+# momo.endpoint=https://payment.momo.vn/v2/gateway/api/create
+# momo.partner-code=YOUR_PROD_PARTNER_CODE
+# momo.access-key=YOUR_PROD_ACCESS_KEY
+# momo.secret-key=YOUR_PROD_SECRET_KEY
 ```
+
+#### Signature Generation (HMAC SHA256):
+
+```java
+// MomoSecurityUtil.java
+public class MomoSecurityUtil {
+
+    public static String signHmacSHA256(String data, String secretKey) {
+        try {
+            Mac hmacSHA256 = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(
+                secretKey.getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256"
+            );
+            hmacSHA256.init(secretKeySpec);
+            byte[] hash = hmacSHA256.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            return Hex.encodeHexString(hash); // Apache Commons Codec
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating signature", e);
+        }
+    }
+
+    public static boolean verifySignature(
+            String rawData,
+            String signature,
+            String secretKey) {
+        String expectedSignature = signHmacSHA256(rawData, secretKey);
+        return signature.equals(expectedSignature);
+    }
+}
+```
+
+#### Request Payload Format:
+
+```java
+// Create Payment Request to Momo
+{
+    "partnerCode": "MOMOBKUN20180529",
+    "partnerName": "Smart Restaurant",
+    "storeId": "SmartRestaurant01",
+    "requestId": "PAY-20260226-001",
+    "amount": 150000,
+    "orderId": "ORD-20260226-001",
+    "orderInfo": "Payment for Order ORD-20260226-001",
+    "redirectUrl": "https://your-app.com/payment/result",
+    "ipnUrl": "https://your-backend.com/api/payments/momo/callback",
+    "lang": "en",
+    "requestType": "captureWallet",
+    "autoCapture": true,
+    "extraData": "{\"sessionId\":\"uuid\"}",
+    "signature": "computed_hmac_sha256_signature"
+}
+
+// Signature raw data (fields sorted alphabetically):
+// "accessKey=xxx&amount=150000&extraData=...&ipnUrl=...&orderId=...&orderInfo=...&partnerCode=...&redirectUrl=...&requestId=...&requestType=captureWallet"
+```
+
+#### Momo Response Format:
+
+```json
+// Success Response
+{
+    "partnerCode": "MOMOBKUN20180529",
+    "orderId": "ORD-20260226-001",
+    "requestId": "PAY-20260226-001",
+    "amount": 150000,
+    "responseTime": 1708934400000,
+    "message": "Successful",
+    "resultCode": 0,
+    "payUrl": "https://test-payment.momo.vn/v2/gateway/pay?t=xxx",
+    "deeplink": "momo://app?action=pay&orderId=xxx",
+    "qrCodeUrl": "https://test-payment.momo.vn/qr/xxx.png",
+    "deeplinkMiniApp": "momo://app/miniapp?..."
+}
+
+// Error Response
+{
+    "partnerCode": "MOMOBKUN20180529",
+    "orderId": "ORD-20260226-001",
+    "requestId": "PAY-20260226-001",
+    "amount": 150000,
+    "responseTime": 1708934400000,
+    "message": "Invalid signature",
+    "resultCode": 4,
+    "payUrl": "",
+    "deeplink": "",
+    "qrCodeUrl": ""
+}
+```
+
+#### IPN Callback Format:
+
+```json
+// Momo sends this to your ipnUrl
+{
+    "partnerCode": "MOMOBKUN20180529",
+    "orderId": "ORD-20260226-001",
+    "requestId": "PAY-20260226-001",
+    "amount": 150000,
+    "orderInfo": "Payment for Order ORD-20260226-001",
+    "orderType": "momo_wallet",
+    "transId": 2889368183,
+    "resultCode": 0,
+    "message": "Successful",
+    "payType": "qr",
+    "responseTime": 1708934500000,
+    "extraData": "{\"sessionId\":\"uuid\"}",
+    "signature": "momo_computed_signature"
+}
+
+// ResultCode meanings:
+// 0: Success
+// 9000: Transaction pending
+// 1006: Transaction failed
+// 1001: Transaction rejected by user
+// Other: Various error codes (check Momo docs)
+```
+
+### 5.4 API Endpoints
+
+#### Payment Endpoints:
+
+| Method | Endpoint                         | Description                          | Access |
+| :----- | :------------------------------- | :----------------------------------- | :----- |
+| POST   | `/api/payments/momo/initiate`    | Initiate Momo payment                | Public |
+| POST   | `/api/payments/momo/callback`    | IPN callback from Momo (server-side) | Public |
+| GET    | `/api/payments/momo/{id}/status` | Check payment status                 | Public |
+| POST   | `/api/payments/momo/{id}/verify` | Manual verification (admin)          | ADMIN  |
+
+#### Session Payment Endpoints:
+
+| Method | Endpoint                          | Description            | Access |
+| :----- | :-------------------------------- | :--------------------- | :----- |
+| POST   | `/api/sessions/{id}/request-bill` | Request bill           | Public |
+| GET    | `/api/sessions/{id}/bill-preview` | Preview bill breakdown | Public |
+| POST   | `/api/admin/sessions/{id}/close`  | Close session manually | ADMIN  |
+
+### 5.5 Result Codes
+
+#### Common Momo Result Codes:
+
+| Code | Meaning                 | Action                          |
+| :--- | :---------------------- | :------------------------------ |
+| 0    | Success                 | Complete payment, close session |
+| 9000 | Pending                 | Wait for final status           |
+| 1001 | User rejected           | Allow retry                     |
+| 1006 | Transaction failed      | Allow retry                     |
+| 4    | Invalid signature       | Log error, alert admin          |
+| 10   | System error            | Retry or contact Momo           |
+| 11   | Invalid access key      | Check credentials               |
+| 20   | Invalid amount          | Verify amount format            |
+| 21   | Order already confirmed | Check duplicate                 |
+| 22   | Order not found         | Verify orderId                  |
+
+Full list: https://developers.momo.vn/v3/docs/payment/api/result-handling/resultcode
+
+### 5.6 Security Considerations
+
+#### Best Practices:
+
+1. **Signature Verification**: Always verify Momo's signature on IPN callbacks
+2. **HTTPS Only**: IPN callback URL must use HTTPS in production
+3. **Idempotency**: Handle duplicate IPN callbacks (check if payment already processed)
+4. **Amount Validation**: Verify amount in callback matches original request
+5. **Secret Key Protection**: Store secret key in environment variables, never commit to code
+6. **Timeout Handling**: Set payment expiration time (default 15 minutes)
+7. **Logging**: Log all Momo API interactions for debugging and auditing
+8. **Error Handling**: Return 200 OK to Momo even on errors (prevents retry spam)
+
+#### Sample Security Implementation:
+
+```java
+// PaymentService.java - IPN Handler
+@Transactional
+public MomoCallbackResponse handleCallback(MomoCallbackRequest request) {
+    try {
+        // 1. Verify signature
+        String rawSignature = buildRawSignature(request);
+        if (!MomoSecurityUtil.verifySignature(
+                rawSignature,
+                request.getSignature(),
+                momoSecretKey)) {
+            log.error("Invalid Momo signature for orderId: {}", request.getOrderId());
+            return MomoCallbackResponse.error("Invalid signature");
+        }
+
+        // 2. Find payment record
+        Payment payment = paymentRepo.findByGatewayRequestId(request.getRequestId())
+            .orElseThrow(() -> new RuntimeException("Payment not found"));
+
+        // 3. Check if already processed (idempotency)
+        if (payment.getStatus() == PaymentStatus.COMPLETED) {
+            log.warn("Payment already processed: {}", payment.getId());
+            return MomoCallbackResponse.success("Already processed");
+        }
+
+        // 4. Verify amount matches
+        if (!payment.getTotalAmount().equals(request.getAmount())) {
+            log.error("Amount mismatch - Expected: {}, Got: {}",
+                payment.getTotalAmount(), request.getAmount());
+            payment.setStatus(PaymentStatus.FAILED);
+            return MomoCallbackResponse.error("Amount mismatch");
+        }
+
+        // 5. Process based on result code
+        if (request.getResultCode() == 0) {
+            // Success
+            completePayment(payment, request);
+        } else {
+            // Failed
+            failPayment(payment, request);
+        }
+
+        return MomoCallbackResponse.success("Processed");
+
+    } catch (Exception e) {
+        log.error("Error processing Momo callback", e);
+        return MomoCallbackResponse.error("Internal error");
+    }
+}
+```
+
+### 5.7 Testing
+
+#### Test Credentials (Momo Test Environment):
+
+```
+Partner Code: MOMOBKUN20180529
+Access Key: klm05TvNBzhg7h7j
+Secret Key: at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
+Endpoint: https://test-payment.momo.vn/v2/gateway/api/create
+```
+
+#### Test Momo Account:
+
+- Download Momo app (Android/iOS)
+- Register test account
+- Use test environment QR codes for payment
+- Test transactions are free (no real money)
+
+#### Postman Collection:
+
+Import Momo's official Postman collection:
+https://developers.momo.vn/v3/docs/payment/api/wallet/onetime
+
+### 5.8 Production Checklist
+
+- [ ] Replace test credentials with production credentials
+- [ ] Update endpoints to production URLs
+- [ ] Configure HTTPS for IPN callback URL
+- [ ] Set up monitoring and alerting for payment failures
+- [ ] Implement payment reconciliation (daily batch job)
+- [ ] Test payment flows end-to-end
+- [ ] Document rollback procedures
+- [ ] Set up error notification to admin
+- [ ] Configure payment timeout (default: 15 minutes)
+- [ ] Test webhook retry mechanism
 
 ---
 

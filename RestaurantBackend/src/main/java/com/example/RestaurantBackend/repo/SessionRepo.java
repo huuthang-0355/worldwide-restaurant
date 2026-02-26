@@ -5,6 +5,7 @@ import com.example.RestaurantBackend.model.enums.SessionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,4 +15,7 @@ public interface SessionRepo extends JpaRepository<Session, UUID> {
     Optional<Session> findByTableIdAndStatus(UUID tableId, SessionStatus status);
 
     boolean existsByTableIdAndStatus(UUID tableId, SessionStatus status);
+
+    List<Session> findByStatusOrderByUpdatedAtAsc(SessionStatus status);
+
 }

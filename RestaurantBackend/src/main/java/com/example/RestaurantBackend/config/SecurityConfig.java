@@ -104,6 +104,7 @@ public class SecurityConfig {
                             "/api/sessions/**",
                             "/api/menu/**"
                     ).permitAll()
+                    .requestMatchers("/api/waiter/**").hasAnyRole("ADMIN", "WAITER")
                     .requestMatchers("/api/kitchen/**").hasAnyRole("ADMIN", "KITCHEN_STAFF")
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated())
