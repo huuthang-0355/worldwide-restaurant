@@ -6,8 +6,11 @@ import com.example.RestaurantBackend.dto.request.cart.AddCartItemRequest;
 import com.example.RestaurantBackend.dto.request.cart.UpdateCartItemRequest;
 import com.example.RestaurantBackend.dto.response.MessageResponse;
 import com.example.RestaurantBackend.dto.response.SessionResponse;
+import com.example.RestaurantBackend.dto.response.bill_request.BillRequestResponse;
 import com.example.RestaurantBackend.dto.response.order.OrderListResponse;
 import com.example.RestaurantBackend.dto.response.order.OrderResponse;
+import com.example.RestaurantBackend.dto.response.payment.BillPreviewResponse;
+import com.example.RestaurantBackend.service.BillService;
 import com.example.RestaurantBackend.service.OrderService;
 import com.example.RestaurantBackend.service.SessionService;
 import com.sun.java.accessibility.util.GUIInitializedListener;
@@ -26,6 +29,7 @@ public class SessionController {
 
     private final SessionService sessionService;
     private final OrderService orderService;
+    private final BillService billService;
 
     @PostMapping
     public ResponseEntity<?> startSession(@Valid @RequestBody StartSessionRequest request) {
@@ -143,6 +147,38 @@ public class SessionController {
 
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/{id}/bill-preview")
+    public ResponseEntity<?> previewBill(@PathVariable("id") UUID sessionId) {
+        try {
+            BillPreviewResponse response = billService.previewBill(sessionId);
+
+            if(!response.isSuccess())
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+
+            return new ResponseEntity<>(MessageResponse.error("Failed to preview bill " + e.getMessage()),
+                    HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/{id}/request-bill")
+    public ResponseEntity<MessageResponse> requestBill(@PathVariable("id") UUID sessionId) {
+        try {
+            MessageResponse response = billService.requestBill(sessionId);
+
+            if(!response.getSuccess())
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+
+            return new ResponseEntity<>(MessageResponse.error("Failed to request bill " + e.getMessage()),
+                    HttpStatus.BAD_REQUEST);
         }
     }
 }

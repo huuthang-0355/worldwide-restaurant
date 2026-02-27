@@ -102,9 +102,13 @@ public class SecurityConfig {
                             "/api/auth/forgot-password",
                             "/api/auth/reset-password",
                             "/api/sessions/**",
-                            "/api/menu/**"
+                            "/api/menu/**",
+                            "/api/payments/momo/initiate",
+                            "/api/payments/momo/callback",
+                            "/api/payments/momo/*/status"
                     ).permitAll()
                     .requestMatchers("/api/waiter/**").hasAnyRole("ADMIN", "WAITER")
+                    .requestMatchers("/api/payments/momo/*/verify").hasRole("ADMIN")
                     .requestMatchers("/api/kitchen/**").hasAnyRole("ADMIN", "KITCHEN_STAFF")
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated())
