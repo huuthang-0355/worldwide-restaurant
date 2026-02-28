@@ -1,7 +1,10 @@
-import { createContext, useState, useCallback } from "react";
+import { createContext, useState, useCallback, useEffect } from "react";
 import customerMenuService from "../services/customerMenuService";
 
 const CustomerMenuContext = createContext();
+
+const TOKEN_KEY = "restaurantQrToken";
+const TABLE_INFO_KEY = "restaurantTableInfo";
 
 /**
  * CustomerMenuProvider — manages QR session + public menu state
@@ -10,12 +13,26 @@ const CustomerMenuContext = createContext();
  *  - QR token validation and table session storage
  *  - Menu items fetching with filters / pagination
  *  - Categories from the menu response
+ *
+ * Token and tableInfo are persisted to localStorage to survive page refreshes.
  */
 export function CustomerMenuProvider({ children }) {
     // ==================== Session State ====================
-    const [token, setToken] = useState(null);
-    const [tableInfo, setTableInfo] = useState(null);
-    const [sessionValid, setSessionValid] = useState(false);
+    // Initialize from localStorage if available
+    const [token, setToken] = useState(
+        () => localStorage.getItem(TOKEN_KEY) || null,
+    );
+    const [tableInfo, setTableInfo] = useState(() => {
+        const stored = localStorage.getItem(TABLE_INFO_KEY);
+        return stored ? JSON.parse(stored) : null;
+    });
+    const [sessionValid, setSessionValid] = useState(() => {
+        // Session is valid if we have both token and tableInfo
+        return !!(
+            localStorage.getItem(TOKEN_KEY) &&
+            localStorage.getItem(TABLE_INFO_KEY)
+        );
+    });
 
     // ==================== Menu Data ====================
     const [categories, setCategories] = useState([]);
@@ -32,6 +49,35 @@ export function CustomerMenuProvider({ children }) {
     // ==================== UI State ====================
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Persist token to localStorage
+    useEffect(() => {
+        if (token) {
+            localStorage.setItem(TOKEN_KEY, token);
+        } else {
+            localStorage.removeItem(TOKEN_KEY);
+        }
+    }, [token]);
+
+    // Persist tableInfo to localStorage
+    useEffect(() => {
+        if (tableInfo) {
+            localStorage.setItem(TABLE_INFO_KEY, JSON.stringify(tableInfo));
+        } else {
+            localStorage.removeItem(TABLE_INFO_KEY);
+        }
+    }, [tableInfo]);
+
+    /**
+     * Clear the session (for logout or session end)
+     */
+    const clearSession = useCallback(() => {
+        setToken(null);
+        setTableInfo(null);
+        setSessionValid(false);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TABLE_INFO_KEY);
+    }, []);
 
     /**
      * Validate a QR token and establish a table session.
@@ -128,6 +174,7 @@ export function CustomerMenuProvider({ children }) {
         verifyToken,
         fetchMenuItems,
         getItemById,
+        clearSession,
     };
 
     return (

@@ -1,16 +1,24 @@
 import { NavLink } from "react-router-dom";
-import { Home, ShoppingCart, ClipboardList, User } from "lucide-react";
+import { Home, ShoppingCart, ClipboardList, Receipt } from "lucide-react";
+import { useSession } from "../../context/useSession";
 
 /**
  * BottomNav — fixed bottom navigation matching the customer mockup.
- * Four tabs: Menu, Cart, Orders, Profile.
+ * Four tabs: Menu, Cart (with badge), Orders, Bill.
  */
 function BottomNav() {
+    const { cartCount } = useSession();
+
     const navItems = [
-        { to: "/menu", icon: Home, label: "Menu" },
-        { to: "/cart", icon: ShoppingCart, label: "Cart", badge: null },
-        { to: "/orders", icon: ClipboardList, label: "Orders" },
-        { to: "/login", icon: User, label: "Profile" },
+        { to: "/menu/browse", icon: Home, label: "Menu" },
+        {
+            to: "/menu/cart",
+            icon: ShoppingCart,
+            label: "Cart",
+            badge: cartCount > 0 ? cartCount : null,
+        },
+        { to: "/menu/orders", icon: ClipboardList, label: "Orders" },
+        { to: "/menu/bill", icon: Receipt, label: "Bill" },
     ];
 
     return (

@@ -61,6 +61,12 @@ export function ToastProvider({ children }) {
                 error,
                 warning,
                 info,
+                // Aliases for convenience
+                addSuccess: success,
+                addError: error,
+                addWarning: warning,
+                addInfo: info,
+                showToast: addToast,
             }}
         >
             {children}

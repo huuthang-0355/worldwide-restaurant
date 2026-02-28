@@ -29,7 +29,7 @@ function CustomerRegister() {
     // Redirect if already authenticated
     useEffect(() => {
         if (isCustomerAuthenticated) {
-            navigate("/profile", { replace: true });
+            navigate("/menu/browse", { replace: true });
         }
     }, [isCustomerAuthenticated, navigate]);
 

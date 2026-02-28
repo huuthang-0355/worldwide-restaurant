@@ -5,8 +5,8 @@ import MenuStatusBadge from "./MenuStatusBadge";
 
 /**
  * MenuItemCard — single item row in the menu list.
- * Matches the mockup: image left, info right, price + "Add" button bottom.
- * Entire card is tappable to navigate to item detail.
+ * Matches the mockup: image left, info right, price display.
+ * Entire card is tappable to navigate to item detail where users can customize and add to cart.
  */
 function MenuItemCard({ item }) {
     const navigate = useNavigate();
@@ -15,12 +15,6 @@ function MenuItemCard({ item }) {
     const disabled = isSoldOut || isUnavailable;
 
     const handleClick = () => {
-        navigate(`/menu/item/${item.id}`);
-    };
-
-    const handleAddClick = (e) => {
-        e.stopPropagation();
-        // Cart integration will be added in a future step
         navigate(`/menu/item/${item.id}`);
     };
 
@@ -62,14 +56,6 @@ function MenuItemCard({ item }) {
                     <span className="text-lg font-bold text-primary-500">
                         {formatPrice(item.price)}
                     </span>
-                    {!disabled && (
-                        <button
-                            onClick={handleAddClick}
-                            className="bg-primary-500 text-white border-none px-5 py-2 rounded-full text-sm font-semibold cursor-pointer hover:bg-primary-600 transition-colors"
-                        >
-                            + Add
-                        </button>
-                    )}
                 </div>
             </div>
         </div>

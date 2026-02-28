@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { useCustomerMenu } from "../../context/useCustomerMenu";
+import { useSession } from "../../context/useSession";
+import { useToast } from "../../context/useToast";
 import { formatPrice } from "../../utils/formatCurrency";
 import MenuStatusBadge from "../../components/customer/MenuStatusBadge";
 import ItemModifierSection from "../../components/customer/ItemModifierSection";
@@ -28,6 +30,8 @@ function ItemDetail() {
 function ItemDetailInner({ itemId }) {
     const navigate = useNavigate();
     const { getItemById, items, sessionValid } = useCustomerMenu();
+    const { addToCart, cartLoading } = useSession();
+    const { showToast } = useToast();
 
     const item = getItemById(itemId);
 
@@ -99,6 +103,49 @@ function ItemDetailInner({ itemId }) {
 
     const handleRelatedClick = (relatedItem) => {
         navigate(`/menu/item/${relatedItem.id}`);
+    };
+
+    const handleAddToCart = async () => {
+        try {
+            // Build modifierOptionIds array from selections
+            const modifierOptionIds = [];
+            item.modifierGroups?.forEach((group) => {
+                if (group.selectionType === "SINGLE") {
+                    const selectedOptionId = modifierSelections[group.id];
+                    if (selectedOptionId) {
+                        modifierOptionIds.push(selectedOptionId);
+                    }
+                } else {
+                    // MULTIPLE
+                    group.options?.forEach((option) => {
+                        if (modifierSelections[option.id]) {
+                            modifierOptionIds.push(option.id);
+                        }
+                    });
+                }
+            });
+
+            const data = {
+                menuItemId: item.id,
+                quantity,
+                modifierOptionIds:
+                    modifierOptionIds.length > 0
+                        ? modifierOptionIds
+                        : undefined,
+                specialInstructions: specialInstructions.trim() || undefined,
+            };
+
+            await addToCart(data);
+            showToast("Item added to cart!", "success");
+            navigate("/menu/cart");
+        } catch (error) {
+            console.error("Add to cart error:", error);
+            console.error("Error response:", error.response?.data);
+            showToast(
+                error.response?.data?.message || "Failed to add item to cart",
+                "error",
+            );
+        }
     };
 
     const isSoldOut = item?.status === MENU_STATUS.SOLD_OUT;
@@ -271,7 +318,7 @@ function ItemDetailInner({ itemId }) {
 
             {/* Sticky Add to Cart Bar */}
             {!disabled && (
-                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-97.5 bg-white px-5 py-4 flex items-center justify-between shadow-[0_-2px_10px_rgba(0,0,0,0.1)] border-t border-gray-200 z-50">
+                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-97.5 bg-white px-5 py-4 flex items-center justify-between shadow-[0_-2px_10px_rgba(0,0,0,0.1)] border-t border-gray-200 z-60">
                     {/* Quantity control */}
                     <div className="flex items-center gap-4 bg-gray-100 rounded-full px-3 py-1.5">
                         <button
@@ -294,15 +341,26 @@ function ItemDetailInner({ itemId }) {
                     </div>
 
                     {/* Add to cart button */}
-                    <button className="flex-1 ml-4 py-3 bg-primary-500 text-white rounded-full font-semibold text-base hover:bg-primary-600 transition-colors">
-                        Add to Cart – {formatPrice(totalPrice)}
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={cartLoading}
+                        className="flex-1 ml-4 py-3 bg-primary-500 text-white rounded-full font-semibold text-base hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                        {cartLoading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Adding...
+                            </>
+                        ) : (
+                            <>Add to Cart – {formatPrice(totalPrice)}</>
+                        )}
                     </button>
                 </div>
             )}
 
             {/* Sold out / unavailable notice */}
             {disabled && (
-                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-97.5 bg-gray-200 px-5 py-4 text-center text-gray-500 font-medium shadow-[0_-2px_10px_rgba(0,0,0,0.1)] border-t border-gray-200 z-50">
+                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-97.5 bg-gray-200 px-5 py-4 text-center text-gray-500 font-medium shadow-[0_-2px_10px_rgba(0,0,0,0.1)] border-t border-gray-200 z-60">
                     {isSoldOut
                         ? "This item is currently sold out"
                         : "This item is currently unavailable"}

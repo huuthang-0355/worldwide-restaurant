@@ -16,6 +16,7 @@ export const AUTH_ENDPOINTS = {
 export const USER_ENDPOINTS = {
     PROFILE: "/users/profile",
     AVATAR: "/users/avatar",
+    ORDER_HISTORY: "/users/order-history",
     STAFF: "/users/staff",
     STAFF_BY_ID: (id) => `/users/staff/${id}`,
     STAFF_STATUS: (id) => `/users/staff/${id}/status`,
@@ -72,4 +73,54 @@ export const ADMIN_ENDPOINTS = {
 export const CUSTOMER_ENDPOINTS = {
     MENU_VERIFY: "/menu",
     MENU_ITEMS: "/menu/items",
+};
+
+// Session Management (Public — QR-based sessions, no auth)
+export const SESSION_ENDPOINTS = {
+    CREATE: "/sessions",
+    GET: (id) => `/sessions/${id}`,
+    ADD_CART_ITEM: (id) => `/sessions/${id}/cart/items`,
+    UPDATE_CART_ITEM: (id, itemId) => `/sessions/${id}/cart/items/${itemId}`,
+    REMOVE_CART_ITEM: (id, itemId) => `/sessions/${id}/cart/items/${itemId}`,
+    CHECKOUT: (id) => `/sessions/${id}/checkout`,
+    GET_ORDERS: (id) => `/sessions/${id}/orders`,
+    BILL_PREVIEW: (id) => `/sessions/${id}/bill-preview`,
+    REQUEST_BILL: (id) => `/sessions/${id}/request-bill`,
+    LINK_USER: (id) => `/sessions/${id}/link-user`,
+};
+
+// Kitchen Display System (Role: KITCHEN_STAFF)
+export const KITCHEN_ENDPOINTS = {
+    ORDERS: "/kitchen/orders",
+    ORDER_BY_ID: (id) => `/kitchen/orders/${id}`,
+    UPDATE_STATUS: (id) => `/kitchen/orders/${id}/status`,
+    STATS: "/kitchen/orders/stats",
+};
+
+// Waiter Features (Role: WAITER)
+export const WAITER_ENDPOINTS = {
+    ALL_ORDERS: "/waiter/orders",
+    PENDING_ORDERS: "/waiter/orders/pending",
+    ACCEPT_ITEM: (orderId, itemId) =>
+        `/waiter/orders/${orderId}/items/${itemId}/accept`,
+    REJECT_ITEM: (orderId, itemId) =>
+        `/waiter/orders/${orderId}/items/${itemId}/reject`,
+    SEND_TO_KITCHEN: (orderId) => `/waiter/orders/${orderId}/send-to-kitchen`,
+    MARK_SERVED: (orderId) => `/waiter/orders/${orderId}/served`,
+    BILL_REQUESTS: "/waiter/bill-requests",
+};
+
+// Momo Payment (Public except verify)
+export const PAYMENT_ENDPOINTS = {
+    MOMO_INITIATE: "/payments/momo/initiate",
+    MOMO_CALLBACK: "/payments/momo/callback",
+    MOMO_STATUS: (id) => `/payments/momo/${id}/status`,
+    MOMO_VERIFY: (id) => `/payments/momo/${id}/verify`,
+};
+
+// Reports (Role: ADMIN, MANAGER)
+export const REPORT_ENDPOINTS = {
+    REVENUE: "/reports/revenue",
+    TOP_ITEMS: "/reports/top-items",
+    CHART_DATA: "/reports/chart-data",
 };

@@ -171,6 +171,15 @@ const authService = {
         return response.data;
     },
 
+    /**
+     * Get customer order history (requires CUSTOMER role)
+     * @returns {Promise} Order history with sessions and orders
+     */
+    getOrderHistory: async () => {
+        const response = await apiClient.get(USER_ENDPOINTS.ORDER_HISTORY);
+        return response.data;
+    },
+
     // ==================== Staff Management (Admin Only) ====================
 
     /**

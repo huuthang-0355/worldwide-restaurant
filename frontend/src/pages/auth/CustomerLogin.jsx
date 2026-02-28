@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { useToast } from "../../context/useToast";
+import orderService from "../../services/orderService";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+
+const SESSION_ID_KEY = "restaurantSessionId";
 
 /**
  * CustomerLogin - Customer login page
@@ -25,7 +28,7 @@ function CustomerLogin() {
     // Redirect if already authenticated
     useEffect(() => {
         if (isCustomerAuthenticated) {
-            const from = location.state?.from?.pathname || "/profile";
+            const from = location.state?.from?.pathname || "/menu/browse";
             navigate(from, { replace: true });
         }
     }, [isCustomerAuthenticated, navigate, location]);
@@ -67,7 +70,18 @@ function CustomerLogin() {
         try {
             await customerLogin(formData);
             toast.success("Welcome back!");
-            const from = location.state?.from?.pathname || "/profile";
+
+            // Try to link user to current session (if any)
+            const sessionId = localStorage.getItem(SESSION_ID_KEY);
+            if (sessionId) {
+                try {
+                    await orderService.linkUserToSession(sessionId);
+                } catch {
+                    // Silent fail - user can still use the app
+                }
+            }
+
+            const from = location.state?.from?.pathname || "/menu/browse";
             navigate(from, { replace: true });
         } catch (err) {
             toast.error(err.response?.data?.message || "Login failed");

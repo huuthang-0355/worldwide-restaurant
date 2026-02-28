@@ -6,7 +6,6 @@ import {
     FolderOpen,
     Settings2,
     Users,
-    BarChart3,
     Monitor,
     LogOut,
     LayoutGrid,
@@ -23,18 +22,12 @@ function AdminSidebar() {
     const { staffUser, staffLogout } = useAuth();
     const navItems = [
         { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        {
-            path: "/admin/orders",
-            icon: ClipboardList,
-            label: "Orders",
-            badge: 5,
-        },
+        { path: "/admin/orders", icon: ClipboardList, label: "Orders" },
         { path: "/admin/menu", icon: Utensils, label: "Menu Items" },
         { path: "/admin/categories", icon: FolderOpen, label: "Categories" },
         { path: "/admin/modifiers", icon: Settings2, label: "Modifiers" },
         { path: "/admin/tables", icon: LayoutGrid, label: "Tables" },
-        { path: "/admin/staff", icon: Users, label: "Kitchen Staff" },
-        { path: "/admin/reports", icon: BarChart3, label: "Reports" },
+        { path: "/admin/staff", icon: Users, label: "Staff" },
         { path: "/admin/kds", icon: Monitor, label: "Kitchen Display" },
     ];
 
