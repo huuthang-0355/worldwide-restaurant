@@ -47,11 +47,16 @@ public class Session {
     private List<Order> orders = new ArrayList<>();
 
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy(value = "createdAt ASC")
     @Builder.Default
     private List<CartItem> cartItems = new ArrayList<>();
 
     @OneToOne(mappedBy = "session", cascade = CascadeType.ALL)
     private Payment payment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = true)
+    private User user;
 
     @Column(name = "created_at")
     @CreationTimestamp

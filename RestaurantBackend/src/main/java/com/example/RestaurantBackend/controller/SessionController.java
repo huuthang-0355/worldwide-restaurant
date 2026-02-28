@@ -31,11 +31,33 @@ public class SessionController {
     private final OrderService orderService;
     private final BillService billService;
 
+    @PostMapping("/{sessionId}/link-user")
+    public ResponseEntity<SessionResponse> linkUserToSession(
+            @PathVariable UUID sessionId,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        try {
+
+            SessionResponse response = sessionService.linkUserToSession(sessionId, authHeader);
+
+            if(!response.isSuccess())
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+
+            return new ResponseEntity<>(SessionResponse.error("Failed to link user: " + e.getMessage()),
+                    HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @PostMapping
-    public ResponseEntity<?> startSession(@Valid @RequestBody StartSessionRequest request) {
+    public ResponseEntity<?> startSession(@Valid @RequestBody StartSessionRequest request,
+                                          @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         try {
-            SessionResponse response = sessionService.startSession(request);
+            SessionResponse response = sessionService.startSession(request, authHeader);
 
             if(!response.isSuccess())
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

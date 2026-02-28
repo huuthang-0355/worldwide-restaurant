@@ -21,4 +21,9 @@ public interface OrderRepo extends JpaRepository<Order, UUID> {
 
     long countByStatusIn(List<OrderStatus> statuses);
 
+    List<Order> findByStatusOrderByCreatedAtDesc(OrderStatus status);
+
+    List<Order> findAllByOrderByCreatedAtDesc();
+
+    List<Order> findBySessionIdInOrderByCreatedAtDesc(List<UUID> sessionIds);
 }

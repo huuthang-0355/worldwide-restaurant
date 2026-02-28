@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class AddCartItemRequest {
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
 
-    private List<UUID> modifierOptionIds;
+    private List<UUID> modifierOptionIds = new ArrayList<>();
 
     private String specialInstructions;
 

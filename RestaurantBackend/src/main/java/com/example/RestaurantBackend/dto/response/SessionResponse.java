@@ -30,6 +30,11 @@ public class SessionResponse {
     private BigDecimal cartTotal;
     private int cartItemCount;
 
+    // ✅ Add user info
+    private UUID userId;
+    private String userEmail;
+    private boolean hasLinkedUser;
+
     public static SessionResponse fromEntity(Session session) {
         List<CartItemResponse> cartItems = session.getCartItems() == null
                 ? List.of()
@@ -57,6 +62,9 @@ public class SessionResponse {
                 .cartItems(cartItems)
                 .cartTotal(cartTotal)
                 .cartItemCount(itemCount)
+                .userId(session.getUser() != null ? session.getUser().getId() : null)
+                .userEmail(session.getUser() != null ? session.getUser().getEmail() : null)
+                .hasLinkedUser(session.getUser() != null)
                 .build();
     }
 

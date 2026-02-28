@@ -28,14 +28,16 @@ import java.util.UUID;
 public class SessionService {
 
     private final QrTokenService qrTokenService;
+    private final JwtService jwtService;
     private final SessionRepo sessionRepo;
     private final TableRepo tableRepo;
     private final MenuItemRepo menuItemRepo;
+    private final UserRepo userRepo;
     private final ModifierOptionRepo modifierOptionRepo;
     private final CartItemRepo cartItemRepo;
 
     @Transactional
-    public SessionResponse startSession(StartSessionRequest request) {
+    public SessionResponse startSession(StartSessionRequest request, String authHeader) {
         // validate QR token
         Claims claims =  qrTokenService.validateToken(request.getToken());
 
@@ -56,10 +58,21 @@ public class SessionService {
         Table table = tableRepo.findById(tableId)
                 .orElseThrow(() -> new RuntimeException("Table not found"));
 
+        User user = null;
+        if(authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            String email = jwtService.extractEmail(token);
+
+            user = userRepo.findByEmail(email)
+                    .orElse(null);
+        }
+
+
         // create new session
         Session session = Session.builder()
                 .table(table)
                 .status(SessionStatus.ACTIVE)
+                .user(user)
                 .guestCount(request.getGuestCount())
                 .startedAt(LocalDateTime.now())
                 .cartItems(new ArrayList<>())
@@ -102,7 +115,7 @@ public class SessionService {
 
         List<CartItemModifier> modifiers = new ArrayList<>();
 
-        if(request.getModifierOptionIds() != null & !request.getModifierOptionIds().isEmpty()) {
+        if(request.getModifierOptionIds() != null && !request.getModifierOptionIds().isEmpty()) {
             List<ModifierOption> optionList = modifierOptionRepo
                     .findAllById(request.getModifierOptionIds());
 
@@ -145,10 +158,13 @@ public class SessionService {
         cartItemRepo.save(cartItem);
 
         // reload session with updated cart
-        Session returnedSession = sessionRepo.findById(sessionId)
+        session.getCartItems().add(cartItem);
+        sessionRepo.save(session);
+
+        session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Session not found"));
 
-        return SessionResponse.success(returnedSession);
+        return SessionResponse.success(session);
     }
 
     @Transactional
@@ -228,4 +244,48 @@ public class SessionService {
         return MessageResponse.success("Item removed from cart successfully");
     }
 
+    @Transactional
+    public SessionResponse linkUserToSession(UUID sessionId, String authHeader) {
+        try {
+
+            String token = authHeader.substring(7);
+            String email = jwtService.extractEmail(token);
+            User user = userRepo.findByEmail(email)
+                    .orElse(null);
+
+            Session session = sessionRepo.findById(sessionId)
+                    .orElseThrow(() -> new RuntimeException("Session not found"));
+
+            // Check if session is still active
+            if (session.getStatus() != SessionStatus.ACTIVE
+                    && session.getStatus() != SessionStatus.BILL_REQUESTED
+                    && session.getStatus() != SessionStatus.PAYMENT_PENDING) {
+                return SessionResponse.error("Cannot link user to completed or cancelled session");
+            }
+
+            // Check if session already has a different user
+            if (session.getUser() != null
+                    && user != null
+                    && !session.getUser().getId().equals(user.getId())
+            ) {
+                return SessionResponse.error("Session is already linked to another user");
+            }
+
+            // If already linked to same user, just return success
+            if (session.getUser() != null
+                    && user != null
+                    && session.getUser().getId().equals(user.getId())) {
+                return SessionResponse.success(session);
+            }
+
+            session.setUser(user);
+            session = sessionRepo.save(session);
+
+            return SessionResponse.success(session);
+
+        } catch (Exception e) {
+
+            return SessionResponse.error("Failed to link user: " + e.getMessage());
+        }
+    }
 }

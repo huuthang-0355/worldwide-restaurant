@@ -94,6 +94,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(customizer -> customizer.disable())
             .authorizeHttpRequests(request -> request
+                    .requestMatchers("/api/sessions/*/link-user").authenticated()
                     .requestMatchers(
                             "/api/auth/login",
                             "/api/auth/register",
@@ -111,6 +112,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/payments/momo/*/verify").hasRole("ADMIN")
                     .requestMatchers("/api/kitchen/**").hasAnyRole("ADMIN", "KITCHEN_STAFF")
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/users/order-history").hasRole("CUSTOMER")
                     .anyRequest().authenticated())
             .sessionManagement(session ->
                                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -18,4 +18,6 @@ public interface SessionRepo extends JpaRepository<Session, UUID> {
 
     List<Session> findByStatusOrderByUpdatedAtAsc(SessionStatus status);
 
+    List<Session> findByUserIdOrderByStartedAtDesc(UUID userId);
+
 }

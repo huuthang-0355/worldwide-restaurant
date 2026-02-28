@@ -5,13 +5,21 @@ import com.example.RestaurantBackend.dto.request.user.UpdateProfileRequest;
 import com.example.RestaurantBackend.dto.request.user.UpdateStaffRequest;
 import com.example.RestaurantBackend.dto.request.user.UpdateStatusRequest;
 import com.example.RestaurantBackend.dto.response.MessageResponse;
+import com.example.RestaurantBackend.dto.response.OrderHistoryResponse;
 import com.example.RestaurantBackend.dto.response.StaffListResponse;
 import com.example.RestaurantBackend.dto.response.UserResponse;
+import com.example.RestaurantBackend.dto.response.order.OrderResponse;
+import com.example.RestaurantBackend.model.Session;
 import com.example.RestaurantBackend.model.enums.DataStatus;
 import com.example.RestaurantBackend.model.enums.Role;
 import com.example.RestaurantBackend.model.User;
+import com.example.RestaurantBackend.model.order.Order;
+import com.example.RestaurantBackend.repo.OrderRepo;
+import com.example.RestaurantBackend.repo.SessionRepo;
 import com.example.RestaurantBackend.repo.UserRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +35,10 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final CloudinaryService cloudinaryService;
+    private final JwtService jwtService;
     private final UserRepo userRepo;
+    private final SessionRepo sessionRepo;
+    private final OrderRepo orderRepo;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -280,6 +291,43 @@ public class UserService {
 
             return MessageResponse.error("Failed to update staff status: " + e.getMessage());
         }
+    }
+
+    public OrderHistoryResponse getOrderHistory(String authHeader) {
+            try {
+
+                User user = null;
+
+                if(authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    String email = jwtService.extractEmail(token);
+
+                    user = userRepo.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
+                }
+
+                // get all sessions
+                List<Session> userSessions = sessionRepo.findByUserIdOrderByStartedAtDesc(user.getId());
+
+                // get all orders from these sessions
+                List<UUID> sessionIds = userSessions == null ?
+                    List.of()
+                    : userSessions.stream()
+                        .map(Session::getId)
+                        .toList();
+
+                List<Order> orders = orderRepo.findBySessionIdInOrderByCreatedAtDesc(sessionIds);
+
+                List<OrderResponse> orderResponseList = orders == null
+                        ? List.of()
+                        : orders.stream().map(OrderResponse::fromEntity)
+                        .toList();
+
+                return OrderHistoryResponse.success(orderResponseList, userSessions.size());
+            } catch (Exception e) {
+
+                return OrderHistoryResponse.error("Failed to fetch order history " + e.getMessage());
+            }
     }
 
 }

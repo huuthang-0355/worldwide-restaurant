@@ -5,6 +5,7 @@ import com.example.RestaurantBackend.dto.request.user.UpdateProfileRequest;
 import com.example.RestaurantBackend.dto.request.user.UpdateStaffRequest;
 import com.example.RestaurantBackend.dto.request.user.UpdateStatusRequest;
 import com.example.RestaurantBackend.dto.response.MessageResponse;
+import com.example.RestaurantBackend.dto.response.OrderHistoryResponse;
 import com.example.RestaurantBackend.dto.response.StaffListResponse;
 import com.example.RestaurantBackend.dto.response.UserResponse;
 import com.example.RestaurantBackend.model.UserPrincipal;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -59,6 +61,24 @@ public class UserController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/order-history")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<OrderHistoryResponse> getOrderHistory(
+            @RequestHeader(value = "Authorization") String authHeader
+    ) {
+        try {
+            OrderHistoryResponse response = userService.getOrderHistory(authHeader);
+
+            if(!response.isSuccess())
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/staff")

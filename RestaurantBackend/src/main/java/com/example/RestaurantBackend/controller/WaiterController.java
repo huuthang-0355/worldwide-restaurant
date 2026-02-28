@@ -1,10 +1,13 @@
 package com.example.RestaurantBackend.controller;
 
+import com.example.RestaurantBackend.dto.request.OrderFilterRequest;
 import com.example.RestaurantBackend.dto.request.RejectItemRequest;
 import com.example.RestaurantBackend.dto.response.MessageResponse;
 import com.example.RestaurantBackend.dto.response.bill_request.BillRequestListResponse;
+import com.example.RestaurantBackend.dto.response.order.OrderListResponse;
 import com.example.RestaurantBackend.dto.response.order.OrderResponse;
 import com.example.RestaurantBackend.dto.response.pending_order.PendingOrderListResponse;
+import com.example.RestaurantBackend.model.enums.OrderStatus;
 import com.example.RestaurantBackend.service.WaiterService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,44 @@ import java.util.UUID;
 public class WaiterController {
 
     private final WaiterService waiterService;
+
+
+    /**
+     * Get all orders with optional filters
+     *
+     * @param status Filter by order status (optional)
+     * @param sortBy Field to sort by: createdAt, totalAmount, orderNumber (default: createdAt)
+     * @param sortDirection Sort direction: ASC, DESC (default: DESC)
+     */
+    @GetMapping("/orders")
+    public ResponseEntity<OrderListResponse> getAllOrders(
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection
+    ) {
+        try {
+
+            OrderFilterRequest filter = OrderFilterRequest.builder()
+                    .status(status)
+                    .sortBy(sortBy)
+                    .sortDirection(sortDirection)
+                    .build();
+
+            OrderListResponse response = waiterService.getAllOrders(filter);
+
+            if(!response.isSuccess())
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+
+            return new ResponseEntity<>(
+                    OrderListResponse.error("Failed to retrieve orders: " + e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 
     @GetMapping("/orders/pending")
     public ResponseEntity<PendingOrderListResponse> getPendingOrders() {

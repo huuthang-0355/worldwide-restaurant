@@ -1,8 +1,10 @@
 package com.example.RestaurantBackend.service;
 
+import com.example.RestaurantBackend.dto.request.OrderFilterRequest;
 import com.example.RestaurantBackend.dto.request.RejectItemRequest;
 import com.example.RestaurantBackend.dto.response.bill_request.BillRequestListResponse;
 import com.example.RestaurantBackend.dto.response.bill_request.BillRequestResponse;
+import com.example.RestaurantBackend.dto.response.order.OrderListResponse;
 import com.example.RestaurantBackend.dto.response.order.OrderResponse;
 import com.example.RestaurantBackend.dto.response.pending_order.PendingOrderListResponse;
 import com.example.RestaurantBackend.dto.response.pending_order.PendingOrderResponse;
@@ -21,6 +23,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -204,5 +207,48 @@ public class WaiterService {
     }
 
 
+    public OrderListResponse getAllOrders(OrderFilterRequest filter) {
+        try {
+            List<Order> orders;
 
+            if(filter != null && filter.getStatus() != null) {
+                orders = orderRepo.findByStatusOrderByCreatedAtDesc(filter.getStatus());
+            }else
+                orders = orderRepo.findAllByOrderByCreatedAtDesc();
+
+            // Apply sorting
+            if (filter != null && filter.getSortBy() != null && !filter.getSortBy().isBlank()) {
+                orders = applySorting(orders, filter.getSortBy(), filter.getSortDirection());
+            }
+
+            // Convert to response DTOs
+            List<OrderResponse> orderResponses = orders.stream()
+                    .map(OrderResponse::fromEntity)
+                    .toList();
+
+            return OrderListResponse.success(orderResponses);
+
+        } catch (Exception e) {
+            return OrderListResponse.error("Failed to retrieve orders: " + e.getMessage());
+        }
+    }
+
+    private List<Order> applySorting(List<Order> orders, String sortBy, String sortDirection) {
+        boolean ascending = "ASC".equalsIgnoreCase(sortDirection);
+
+        Comparator<Order> comparator = switch (sortBy.toLowerCase()) {
+            case "totalamount", "total_amount" -> Comparator.comparing(Order::getTotalAmount);
+            case "ordernumber", "order_number" -> Comparator.comparing(Order::getOrderNumber);
+            case "createdat", "created_at" -> Comparator.comparing(Order::getCreatedAt);
+            default -> Comparator.comparing(Order::getCreatedAt);
+        };
+
+        if (!ascending) {
+            comparator = comparator.reversed();
+        }
+
+        return orders.stream()
+                .sorted(comparator)
+                .toList();
+    }
 }
