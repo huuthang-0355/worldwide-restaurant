@@ -32,7 +32,7 @@
 - **Security & Auth:** Spring Security, JWT (jjwt 0.12.6)
 - **Utilities:** Cloudinary (Image Hosting), ZXing (QR Code Generation), Apache PDFBox (PDF exports), Spring Boot Mail
 
-### Frontend
+### Frontend (Completely Vibe code)
 - **Core:** React 19, Vite 7, JavaScript
 - **Styling:** TailwindCSS 4
 - **State & Routing:** React Router DOM 7
