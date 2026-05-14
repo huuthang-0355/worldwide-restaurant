@@ -8,7 +8,7 @@
 - **email:** admin@restaurant.com
 - **password:** Admin@123
 
-It can take you between 5 and 7 minutes to wake up the render server. Because I use the free version, the server will be off if there is no request sent to the server for a long time.
+- It can take you between 5 and 7 minutes to wake up the render server. Because I use the free version, the server will be off if there is no request sent to the server for a long time.
 ---
 
 ## Table of Contents
