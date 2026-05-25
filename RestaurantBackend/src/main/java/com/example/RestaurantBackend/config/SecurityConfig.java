@@ -42,7 +42,7 @@ public class SecurityConfig {
 
         return new BCryptPasswordEncoder(12);
     }
-    
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
@@ -73,8 +73,7 @@ public class SecurityConfig {
         // exposed headers (fe can read these)
         configuration.setExposedHeaders(List.of(
                 "Authorization",
-                "Content-Disposition"
-        ));
+                "Content-Disposition"));
 
         // allow credentials (cookies, authorization headers)
         configuration.setAllowCredentials(true);
@@ -91,32 +90,32 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
 
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(customizer -> customizer.disable())
-            .authorizeHttpRequests(request -> request
-                    .requestMatchers("/api/sessions/*/link-user").authenticated()
-                    .requestMatchers(
-                            "/api/auth/login",
-                            "/api/auth/register",
-                            "/api/auth/verify-email",
-                            "/api/auth/check-email",
-                            "/api/auth/forgot-password",
-                            "/api/auth/reset-password",
-                            "/api/sessions/**",
-                            "/api/menu/**",
-                            "/api/payments/momo/initiate",
-                            "/api/payments/momo/callback",
-                            "/api/payments/momo/*/status"
-                    ).permitAll()
-                    .requestMatchers("/api/waiter/**").hasAnyRole("ADMIN", "WAITER")
-                    .requestMatchers("/api/payments/momo/*/verify").hasRole("ADMIN")
-                    .requestMatchers("/api/kitchen/**").hasAnyRole("ADMIN", "KITCHEN_STAFF")
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/users/order-history").hasRole("CUSTOMER")
-                    .anyRequest().authenticated())
-            .sessionManagement(session ->
-                                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(customizer -> customizer.disable())
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers("/api/health").permitAll()
+                        .requestMatchers("/api/sessions/*/link-user").authenticated()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/verify-email",
+                                "/api/auth/check-email",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
+                                "/api/sessions/**",
+                                "/api/menu/**",
+                                "/api/payments/momo/initiate",
+                                "/api/payments/momo/callback",
+                                "/api/payments/momo/*/status")
+                        .permitAll()
+                        .requestMatchers("/api/waiter/**").hasAnyRole("ADMIN", "WAITER")
+                        .requestMatchers("/api/payments/momo/*/verify").hasRole("ADMIN")
+                        .requestMatchers("/api/kitchen/**").hasAnyRole("ADMIN", "KITCHEN_STAFF")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/order-history").hasRole("CUSTOMER")
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

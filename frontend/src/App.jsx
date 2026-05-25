@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
     BrowserRouter as Router,
     Routes,
@@ -43,6 +44,27 @@ import NotFound from "./pages/NotFound";
  * App - Root component with routing and context providers
  */
 function App() {
+    useEffect(() => {
+        const keepAliveUrl = import.meta.env.VITE_API_BASE_URL + "/health";
+        if (!keepAliveUrl) return undefined;
+
+        const ping = () => {
+            fetch(keepAliveUrl, {
+                method: "GET",
+                cache: "no-store",
+            }).catch(() => {
+                // Keep-alive failures should be silent.
+            });
+        };
+
+        ping();
+        const timerId = window.setInterval(ping, 5 * 60 * 1000);
+
+        return () => {
+            window.clearInterval(timerId);
+        };
+    }, []);
+
     return (
         <ToastProvider>
             <AuthProvider>
