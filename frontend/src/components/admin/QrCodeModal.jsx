@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     QrCode,
     RefreshCw,
@@ -20,6 +20,40 @@ function QrCodeModal({ table, onRegenerate }) {
     const [regenerating, setRegenerating] = useState(false);
     const [downloading, setDownloading] = useState(null); // "png" | "pdf" | null
     const [qrData, setQrData] = useState(null);
+    const [qrImageUrl, setQrImageUrl] = useState(null);
+    const [loadingPreview, setLoadingPreview] = useState(false);
+
+    // Fetch the QR code image for preview
+    useEffect(() => {
+        // If the table has a QR code or we just generated one, load the preview image
+        if (table.hasQrCode || qrData) {
+            let isMounted = true;
+
+            const loadPreview = async () => {
+                setLoadingPreview(true);
+                try {
+                    const blob = await tableService.downloadQr(table.id, "png");
+                    if (isMounted) {
+                        setQrImageUrl(URL.createObjectURL(blob));
+                    }
+                } catch (error) {
+                    console.error("Failed to load QR preview", error);
+                } finally {
+                    if (isMounted) {
+                        setLoadingPreview(false);
+                    }
+                }
+            };
+            loadPreview();
+
+            return () => {
+                isMounted = false;
+                if (qrImageUrl) {
+                    URL.revokeObjectURL(qrImageUrl);
+                }
+            };
+        }
+    }, [table.id, table.hasQrCode, qrData]);
 
     /**
      * Trigger file download from a blob
@@ -80,9 +114,23 @@ function QrCodeModal({ table, onRegenerate }) {
             <div className="shrink-0 flex flex-col items-center gap-4">
                 {table.hasQrCode || qrData ? (
                     <>
-                        <div className="w-52 h-52 bg-gray-900 rounded-xl flex items-center justify-center">
-                            <QrCode className="w-36 h-36 text-white" />
-                        </div>
+                        {loadingPreview ? (
+                            <div className="w-52 h-52 bg-gray-100 rounded-xl flex items-center justify-center animate-pulse">
+                                <QrCode className="w-12 h-12 text-gray-400" />
+                            </div>
+                        ) : qrImageUrl ? (
+                            <div className="w-52 h-52 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex items-center justify-center p-2">
+                                <img
+                                    src={qrImageUrl}
+                                    alt={`QR Code for ${table.tableNumber}`}
+                                    className="max-w-full max-h-full object-contain"
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-52 h-52 bg-gray-900 rounded-xl flex items-center justify-center">
+                                <QrCode className="w-36 h-36 text-white" />
+                            </div>
+                        )}
                         <p className="text-sm font-semibold text-gray-700">
                             {table.tableNumber}
                         </p>
