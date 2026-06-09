@@ -11,6 +11,8 @@ import {
     Package,
     ShoppingBag,
 } from "lucide-react";
+import { useRealtime } from "../../hooks/useRealtime";
+import { REALTIME_ENDPOINTS } from "../../constants/api";
 
 /**
  * CustomerOrders — order tracking page matching order-status.html mockup.
@@ -35,6 +37,20 @@ function CustomerOrders() {
         const interval = setInterval(loadOrders, 15000);
         return () => clearInterval(interval);
     }, [loadOrders]);
+
+    // Real-time event handler for customer dining session
+    useRealtime(
+        sessionId ? `${REALTIME_ENDPOINTS.CUSTOMER_STREAM}?sessionId=${sessionId}` : null,
+        {
+            "order-status-updated": () => {
+                if (sessionId) fetchOrders();
+            },
+            "payment-completed": () => {
+                if (sessionId) fetchOrders();
+            }
+        },
+        !!sessionId
+    );
 
     // ==================== Computed Values ====================
     // Filter out cancelled orders from session total

@@ -21,6 +21,63 @@ import {
 import { formatPrice } from "../../utils/formatCurrency";
 import { useToast } from "../../context/useToast";
 import waiterService from "../../services/waiterService";
+import { useRealtime } from "../../hooks/useRealtime";
+import { REALTIME_ENDPOINTS } from "../../constants/api";
+
+// Web Audio API helper for offline bell/chime alerts
+const playNotificationSound = (type = "chime") => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        if (type === "payment") {
+            // Success coin/chime sound (two successive rising notes)
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = "sine";
+            // Note 1
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+            // Note 2
+            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15); // E5
+            gain.gain.setValueAtTime(0.15, ctx.currentTime + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.4);
+        } else {
+            // Standard notification chime (pleasant dual tone)
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc1.type = "sine";
+            osc2.type = "triangle";
+            
+            osc1.frequency.setValueAtTime(880, ctx.currentTime); // A5
+            osc2.frequency.setValueAtTime(440, ctx.currentTime); // A4
+            
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            
+            osc1.start(ctx.currentTime);
+            osc2.start(ctx.currentTime);
+            osc1.stop(ctx.currentTime + 0.3);
+            osc2.stop(ctx.currentTime + 0.3);
+        }
+    } catch (e) {
+        console.warn("Web Audio API failed or blocked", e);
+    }
+};
 
 /**
  * AdminOrders - Combined order management page with tabs
@@ -210,6 +267,35 @@ function AdminOrders() {
         const interval = setInterval(() => fetchAllData(true), 30000);
         return () => clearInterval(interval);
     }, [fetchAllData]);
+
+    // Real-time notification event handlers
+    const handleNewOrder = useCallback((order) => {
+        addSuccess(`New Order Placed: Table ${order.tableNumber}`);
+        playNotificationSound("chime");
+        fetchAllData(true);
+    }, [addSuccess, fetchAllData]);
+
+    const handleOrderStatusUpdated = useCallback((order) => {
+        addSuccess(`Order ${order.orderNumber} status updated to ${order.status}`);
+        playNotificationSound("chime");
+        fetchAllData(true);
+    }, [addSuccess, fetchAllData]);
+
+    const handlePaymentCompleted = useCallback((paymentResponse) => {
+        const payment = paymentResponse.payment;
+        const tableNum = payment?.session?.table?.tableNumber || "Unknown";
+        const amt = payment?.totalAmount ? formatPrice(payment.totalAmount) : "";
+        addSuccess(`Payment Completed: Table ${tableNum} ${amt ? `(${amt})` : ""}`);
+        playNotificationSound("payment");
+        fetchAllData(true);
+    }, [addSuccess, fetchAllData]);
+
+    // Establish real-time stream connection
+    useRealtime(REALTIME_ENDPOINTS.ADMIN_STREAM, {
+        "new-order": handleNewOrder,
+        "order-status-updated": handleOrderStatusUpdated,
+        "payment-completed": handlePaymentCompleted,
+    });
 
     // ==================== Pending Orders Handlers ====================
 

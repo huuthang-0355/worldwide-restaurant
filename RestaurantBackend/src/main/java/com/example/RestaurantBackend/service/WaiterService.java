@@ -21,6 +21,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
+import com.example.RestaurantBackend.event.OrderStatusChangedEvent;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -34,6 +36,7 @@ public class WaiterService {
     private final OrderRepo orderRepo;
     private final OrderItemRepo orderItemRepo;
     private final SessionRepo sessionRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public PendingOrderListResponse getPendingOrders() {
@@ -71,6 +74,8 @@ public class WaiterService {
         orderItem.setStatus(OrderItemStatus.ACCEPTED);
         orderItemRepo.save(orderItem);
 
+        OrderStatus previousStatus = order.getStatus();
+
         // check if all items are accepted or rejected
         boolean allProcessed = order.getItems().stream()
                 .allMatch(item -> item.getStatus() == OrderItemStatus.ACCEPTED ||
@@ -92,6 +97,9 @@ public class WaiterService {
                 orderRepo.save(order);
             }
         }
+
+        // Publish status changed event
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order, previousStatus, order.getStatus()));
 
         return OrderResponse.success(order);
     }
@@ -118,6 +126,8 @@ public class WaiterService {
         item.setRejectionReason(request.getReason());
         orderItemRepo.save(item);
 
+        OrderStatus previousStatus = order.getStatus();
+
         // Check if all items are processed
         boolean allProcessed = order.getItems().stream()
                 .allMatch(i -> i.getStatus() == OrderItemStatus.ACCEPTED
@@ -138,6 +148,9 @@ public class WaiterService {
             }
         }
 
+        // Publish status changed event
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order, previousStatus, order.getStatus()));
+
         return OrderResponse.success(order);
 
     }
@@ -151,6 +164,8 @@ public class WaiterService {
         if(order.getStatus() != OrderStatus.ACCEPTED)
             return OrderResponse.error("Order must be ACCEPTED before sending to kitchen");
 
+        OrderStatus previousStatus = order.getStatus();
+
         // Update order status to IN_KITCHEN
         order.setStatus(OrderStatus.IN_KITCHEN);
         order.setSentToKitchenAt(LocalDateTime.now());
@@ -161,7 +176,10 @@ public class WaiterService {
                 item.setStatus(OrderItemStatus.PREPARING);
         });
 
-        orderRepo.save(order);
+        order = orderRepo.save(order);
+
+        // Publish status changed event
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order, previousStatus, order.getStatus()));
 
         return OrderResponse.success(order);
     }
@@ -175,6 +193,8 @@ public class WaiterService {
             return OrderResponse.error("Order must be READY before marking as served");
         }
 
+        OrderStatus previousStatus = order.getStatus();
+
         // Update order status to SERVED
         order.setStatus(OrderStatus.SERVED);
         order.setServedAt(LocalDateTime.now());
@@ -186,7 +206,10 @@ public class WaiterService {
             }
         });
 
-        orderRepo.save(order);
+        order = orderRepo.save(order);
+
+        // Publish status changed event
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order, previousStatus, order.getStatus()));
 
         return OrderResponse.success(order);
 

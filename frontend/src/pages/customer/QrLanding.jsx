@@ -24,7 +24,9 @@ function QrLanding() {
     const { startSession, sessionId } = useSession();
 
     const qrToken = searchParams.get("token");
-    const [step, setStep] = useState("init"); // init | verifying | starting | error
+    const [step, setStep] = useState(() =>
+        qrToken && !sessionValid ? "verifying" : "init"
+    );
     const [sessionError, setSessionError] = useState(null);
     const sessionStartedRef = useRef(false);
 
@@ -37,8 +39,7 @@ function QrLanding() {
 
     // Step 1: Verify QR token when present
     useEffect(() => {
-        if (qrToken && step === "init" && !sessionValid) {
-            setStep("verifying");
+        if (qrToken && step === "verifying" && !sessionValid) {
             verifyToken(qrToken);
         }
     }, [qrToken, step, sessionValid, verifyToken]);
@@ -123,7 +124,7 @@ function QrLanding() {
                 </p>
                 <button
                     onClick={() => {
-                        setStep("init");
+                        setStep("verifying");
                         setSessionError(null);
                         sessionStartedRef.current = false;
                         if (qrToken) {

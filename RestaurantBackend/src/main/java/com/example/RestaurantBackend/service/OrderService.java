@@ -20,6 +20,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
+import com.example.RestaurantBackend.event.OrderCreatedEvent;
+import com.example.RestaurantBackend.event.OrderStatusChangedEvent;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -36,6 +39,7 @@ public class OrderService {
     private final SessionRepo sessionRepo;
     private final CartItemRepo cartItemRepo;
     private final OrderRepo orderRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
     private String generateOrderNumber() {
         // format: ORD-YYYYMMDD-XX
@@ -161,6 +165,9 @@ public class OrderService {
         // clear cart
         cartItemRepo.deleteBySessionId(sessionId);
 
+        // publish order created event
+        eventPublisher.publishEvent(new OrderCreatedEvent(this, order));
+
         return OrderResponse.success(order);
     }
 
@@ -195,6 +202,7 @@ public class OrderService {
         if(!this.isValidStatusTransition(order.getStatus(), newStatus))
             return OrderResponse.error("Invalid status transition from " + order.getStatus() + " to " + newStatus);
 
+        OrderStatus previousStatus = order.getStatus();
         order.setStatus(newStatus);
 
         // update timestamp based on status
@@ -208,6 +216,9 @@ public class OrderService {
         this.updateOrderItemStatus(order, newStatus);
 
         order = orderRepo.save(order);
+
+        // publish status changed event
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order, previousStatus, newStatus));
 
         return OrderResponse.success(order);
     }

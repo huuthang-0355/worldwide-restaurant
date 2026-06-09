@@ -125,3 +125,9 @@ export const REPORT_ENDPOINTS = {
     TOP_ITEMS: "/reports/top-items",
     CHART_DATA: "/reports/chart-data",
 };
+
+// Real-Time SSE Endpoints
+export const REALTIME_ENDPOINTS = {
+    ADMIN_STREAM: "/realtime/admin/stream",
+    CUSTOMER_STREAM: "/realtime/customer/stream",
+};

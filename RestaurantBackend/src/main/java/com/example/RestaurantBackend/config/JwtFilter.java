@@ -65,13 +65,19 @@ public class JwtFilter extends OncePerRequestFilter {
 //            email = jwtService.extractEmail(token);
 //        }
 
-        // 2. No token provided - let spring secuirty handle it
-        if(!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
+        String token = null;
+        if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else if (request.getRequestURI().contains("/api/realtime")) {
+            token = request.getParameter("token");
+        }
+
+        // 2. No token provided - let spring security handle it
+        if (!StringUtils.hasText(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
         String email = jwtService.extractEmail(token);
 
         // 3. process the token if an email was found and the user is not already authenticated

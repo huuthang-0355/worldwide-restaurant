@@ -26,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationEventPublisher;
+import com.example.RestaurantBackend.event.PaymentCompletedEvent;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -46,6 +48,7 @@ public class MomoServiceImpl implements MomoService {
     private final SessionRepo sessionRepo;
     private final PaymentRepo paymentRepo;
     private final BillService billService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private String generatePaymentReference() {
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -318,13 +321,16 @@ public class MomoServiceImpl implements MomoService {
     private void completePayment(Payment payment) {
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
-        paymentRepo.save(payment);
+        payment = paymentRepo.save(payment);
 
         // close session
         Session session = payment.getSession();
         session.setStatus(SessionStatus.COMPLETED);
         session.setEndedAt(LocalDateTime.now());
         sessionRepo.save(session);
+
+        // Publish payment completed event
+        eventPublisher.publishEvent(new PaymentCompletedEvent(this, payment));
     }
 
     private void failPayment(Payment payment) {

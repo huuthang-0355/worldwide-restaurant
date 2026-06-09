@@ -12,6 +12,8 @@ import {
     Receipt,
     UtensilsCrossed,
 } from "lucide-react";
+import { useRealtime } from "../../hooks/useRealtime";
+import { REALTIME_ENDPOINTS } from "../../constants/api";
 
 /**
  * BillPreview — "Your Bill" page matching payment.html mockup.
@@ -44,6 +46,23 @@ function BillPreview() {
     useEffect(() => {
         if (sessionId) fetchBillPreview();
     }, [sessionId, fetchBillPreview]);
+
+    // Real-time event handler for payment success
+    useRealtime(
+        sessionId ? `${REALTIME_ENDPOINTS.CUSTOMER_STREAM}?sessionId=${sessionId}` : null,
+        {
+            "payment-completed": (data) => {
+                addSuccess("Payment completed successfully!");
+                if (data && data.paymentId) {
+                    sessionStorage.setItem("lastPaymentId", data.paymentId);
+                    navigate(`/menu/payment-result?paymentId=${data.paymentId}`);
+                } else {
+                    navigate("/menu/payment-result");
+                }
+            }
+        },
+        !!sessionId
+    );
 
     // ==================== Handlers ====================
 

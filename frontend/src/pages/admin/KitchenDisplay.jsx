@@ -13,6 +13,42 @@ import {
 } from "lucide-react";
 import { useToast } from "../../context/useToast";
 import kitchenService from "../../services/kitchenService";
+import { useRealtime } from "../../hooks/useRealtime";
+import { REALTIME_ENDPOINTS } from "../../constants/api";
+
+// Web Audio API helper for offline bell/chime alerts
+const playNotificationSound = (type = "chime") => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        // Standard notification chime (pleasant dual tone)
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc1.type = "sine";
+        osc2.type = "triangle";
+        
+        osc1.frequency.setValueAtTime(880, ctx.currentTime); // A5
+        osc2.frequency.setValueAtTime(440, ctx.currentTime); // A4
+        
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        
+        osc1.start(ctx.currentTime);
+        osc2.start(ctx.currentTime);
+        osc1.stop(ctx.currentTime + 0.3);
+        osc2.stop(ctx.currentTime + 0.3);
+    } catch (e) {
+        console.warn("Web Audio API failed or blocked", e);
+    }
+};
 
 /**
  * KitchenDisplay - Kitchen Display System (KDS)
@@ -98,6 +134,23 @@ function KitchenDisplay() {
         const interval = setInterval(() => fetchAllData(true), 15000);
         return () => clearInterval(interval);
     }, [fetchAllData]);
+
+    // Real-time event handlers
+    const handleNewOrder = useCallback((order) => {
+        addSuccess(`New Order Received for Table ${order.tableNumber}`);
+        playNotificationSound("chime");
+        fetchAllData(true);
+    }, [addSuccess, fetchAllData]);
+
+    const handleOrderStatusUpdated = useCallback((order) => {
+        fetchAllData(true);
+    }, [fetchAllData]);
+
+    // Connect to real-time events
+    useRealtime(REALTIME_ENDPOINTS.ADMIN_STREAM, {
+        "new-order": handleNewOrder,
+        "order-status-updated": handleOrderStatusUpdated,
+    });
 
     // ==================== Status Update Handlers ====================
 
