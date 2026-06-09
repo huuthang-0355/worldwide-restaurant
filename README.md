@@ -33,6 +33,15 @@ Many small and medium restaurants lack a simple, affordable way to offer mobile 
 ### Proposed Solution
 Provide a lightweight platform where restaurants can generate unique QR codes for each table. Customers scan the QR code to open the restaurant's digital menu on their phone, customize items (with modifiers), and submit orders directly. Orders are routed immediately to staff via a Kitchen Display System (KDS) and a Waiter dashboard, supporting table-billing and payment gateway integration.
 
+**Smart Restaurant** system enables restaurants to:
+- Manage digital menus with categories, items, and modifiers
+- Generate unique QR codes for each table
+- Allow customers to scan QR, browse menu, and place orders from their phones
+- Customers can add items to their current order during their visit (single order per table session)
+- Process payments after the meal via payment gateway integration (ZaloPay, MoMo, VNPay, Stripe, etc.) - pay-after-meal model
+- Track orders in real-time via Kitchen Display System (KDS)
+- View analytics and performance reports (future feature)
+
 ### Main Flow Diagram
 
 ```mermaid
