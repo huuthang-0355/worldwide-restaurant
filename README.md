@@ -1,232 +1,274 @@
-# Smart Restaurant Application
+# Smart Restaurant
+
+A QR-based menu ordering system for dine-in service, optimizing order flows, kitchen operations, and payment workflows.
 
 **Live Environments:**
 - **Frontend (FE):** https://worldwide-restaurant.onrender.com
 - **Backend (BE):** https://worldwide-restaurant-spring.onrender.com
 
-**Account admin:**
-- **email:** admin@restaurant.com
-- **password:** Admin@123
+It can take you from **7 to 10 minutes** in order to **wake up the render server**. Because I use the free version, the server will be off if there is no request sent to the server for a long time.
 
-- It can take you between 5 and 7 minutes to wake up the render server. Because I use the free version, the server will be off if there is no request sent to the server for a long time.
----
+The **admin account** you can take [here](#usage).
 
 ## Table of Contents
-- [1. Technical Stack](#1-technical-stack)
-- [2. Vibe Coding & Development Rules](#2-vibe-coding--development-rules)
-- [3. Core Workflow](#3-core-workflow)
-- [4. Local Setup Guide](#4-local-setup-guide)
-- [5. Backend Endpoints](#5-backend-endpoints)
-  - [A. Authentication (Public)](#a-authentication-public)
-  - [B. User & Staff Profiles (Authenticated/Admin)](#b-user--staff-profiles-authenticatedadmin)
-  - [C. Sessions & Ordering (Customer)](#c-sessions--ordering-customer)
-  - [D. Table & QR Management (Admin)](#d-table--qr-management-admin)
-  - [E. Menu Management (Admin)](#e-menu-management-admin)
-  - [F. Modifier Groups Management (Admin)](#f-modifier-groups-management-admin)
-  - [G. Kitchen Operations (Kitchen Staff)](#g-kitchen-operations-kitchen-staff)
-  - [H. Waiter Operations (Waiter)](#h-waiter-operations-waiter)
-  - [I. Payments (Public/Admin)](#i-payments-publicadmin)
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Tech Stack](#tech-stack)
+- [API Documentation](#api-documentation)
+- [Author](#author)
+- [Advisor](#advisor)
 
 ---
 
-## 1. Technical Stack
+## Introduction
 
-### Backend
-- **Core:** Java 21, Spring Boot 4.0.2
-- **Database:** PostgreSQL with Spring Data JPA
-- **Security & Auth:** Spring Security, JWT (jjwt 0.12.6)
-- **Utilities:** Cloudinary (Image Hosting), ZXing (QR Code Generation), Apache PDFBox (PDF exports), Spring Boot Mail
+**Smart Restaurant** is a QR-based menu ordering system designed for **dine-in services**. It digitalizes the entire dining experience, from table scanning and order placement to kitchen preparation and payment processing.
 
-### Frontend (Completely Vibe code)
-- **Core:** React 19, Vite 7, JavaScript
-- **Styling:** TailwindCSS 4
-- **State & Routing:** React Router DOM 7
-- **Networking & Assets:** Axios, Lucide React (Icons)
+### Problem Statement
+Many small and medium restaurants lack a simple, affordable way to offer mobile ordering from tables. Customers often wait a long time for staff to take orders or bring the bill, leading to slower service and lost revenue opportunities.
 
----
+### Proposed Solution
+Provide a lightweight platform where restaurants can generate unique QR codes for each table. Customers scan the QR code to open the restaurant's digital menu on their phone, customize items (with modifiers), and submit orders directly. Orders are routed immediately to staff via a Kitchen Display System (KDS) and a Waiter dashboard, supporting table-billing and payment gateway integration.
 
-## 2. Vibe Coding & Development Rules
-
-A significant portion of this project was built using AI "Vibe Coding", specifically generating the frontend architecture, components, and design based on conversational prompts and context.
-
-For an in-depth view of the specific rules and prompts provided to the AI during development, please refer to the following custom documentation files:
-
-- 📖 **[Frontend Vibe Coding Rules](./docs/rules-for-frontend-code.md)** 
-- 📖 **[Backend Development Rules](./docs/rules-for-backend-code.md)**
-
----
-
-## 3. Core Workflow
-
-A high-level view of how Customers, Waiters, and Kitchen staff interact through the system.
+### Main Flow Diagram
 
 ```mermaid
 sequenceDiagram
+    autonumber
     actor Customer
+    participant System as Smart Restaurant System
     actor Waiter
-    actor Kitchen
-    participant System
+    actor Kitchen as Kitchen Staff
+    participant Payment as Payment Gateway (MoMo)
 
-    %% Session & Ordering Phase
-    Customer->>System: 1. Scan Table QR Code & Join Session
-    Customer->>System: 2. Browse Menu & Add to Cart
-    Customer->>System: 3. Checkout (Submit Order)
-    System-->>Waiter: 4. Notify Pending Order
+    %% Ordering Phase
+    rect rgb(232, 245, 233)
+        Note over Customer,System: Ordering Phase
+        Customer->>System: Scan QR Code at Table
+        System-->>Customer: Display Menu
+        Customer->>System: Browse & Select Items
+        Customer->>System: Add to Cart with Modifiers (e.g. toppings, size)
+        Customer->>System: Place Order (Checkout)
+        System-->>Customer: Order Confirmation
+    end
 
     %% Waiter Acceptance Phase
-    Waiter->>System: 5. Review & Accept Items
-    Waiter->>System: 6. Send Items to Kitchen
-    System-->>Kitchen: 7. Display in Kitchen Screen
+    rect rgb(255, 243, 224)
+        Note over System,Waiter: Waiter Review Phase
+        System->>Waiter: New Order Notification (Real-time)
+        Waiter->>System: Review Order Details
+        alt Order Accepted
+            Waiter->>System: Accept Order
+            System->>Kitchen: Send to Kitchen Display (KDS)
+        else Order Rejected
+            Waiter->>System: Reject Order (with reason)
+            System-->>Customer: Order Rejected Notification
+        end
+    end
 
-    %% Kitchen Phase
-    Kitchen->>System: 8. Start Preparing (Update Status)
-    Kitchen->>System: 9. Mark Items as Ready
-    System-->>Waiter: 10. Notify Items Ready to Serve
+    %% Kitchen Preparation Phase
+    rect rgb(227, 242, 253)
+        Note over Kitchen,System: Kitchen Cooking Phase
+        Kitchen->>System: Start Preparing (Status: Preparing)
+        System-->>Customer: Update Status: Preparing
+        Kitchen->>System: Mark Items Ready (Status: Ready)
+        System-->>Customer: Update Status: Ready
+        System->>Waiter: Notify Order Ready for Pickup
+    end
 
-    %% Serving & Payment Phase
-    Waiter->>System: 11. Mark Items as Served
-    Customer->>System: 12. Request Bill / Initiate Payment (e.g., Momo)
-    System-->>Waiter: 13. Notify Bill Requested / Processed
-    Waiter->>System: 14. Close Session
+    %% Serving Phase
+    rect rgb(243, 229, 245)
+        Note over Waiter,Customer: Delivery/Serving Phase
+        Waiter->>Customer: Serve Food to Table
+        Waiter->>System: Mark as Served (Status: Served)
+        System-->>Customer: Update Status: Served
+    end
+
+    %% Add More Items
+    rect rgb(255, 249, 196)
+        Note over Customer,Kitchen: Add More Items to Session
+        Customer->>System: Select more items to order
+        System->>Waiter: Notify New Items
+        Waiter->>System: Accept New Items
+        System->>Kitchen: Send New Items to KDS
+        Kitchen->>System: Prepare & Ready
+        Waiter->>Customer: Serve Additional Items
+        Note over Customer,System: All items consolidated into a single bill session
+    end
+
+    %% Payment Phase
+    rect rgb(255, 235, 238)
+        Note over Customer,Payment: Payment Phase
+        Customer->>System: Request Bill
+        System-->>Customer: Display Bill Preview (All Items)
+        Customer->>System: Select Payment Method
+        alt E-Wallet (MoMo)
+            System->>Payment: Create Payment Request
+            Payment-->>Customer: Redirect to MoMo App
+            Customer->>Payment: Confirm Payment
+            Payment-->>System: Payment Success Callback
+        else Pay at Counter
+            Customer->>Waiter: Pay Cash/Card at Counter
+            Waiter->>System: Mark as Paid
+        end
+        System-->>Customer: Display Digital Receipt
+        System->>Waiter: Table marked vacant for next guests
+    end
+```
+
+### Order State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: Customer Places Order
+
+    Pending --> Accepted: Waiter Accepts
+    Pending --> Rejected: Waiter Rejects
+
+    Rejected --> [*]: Order Cancelled
+
+    Accepted --> Preparing: Kitchen Starts cooking
+    Preparing --> Ready: Kitchen Completes cooking
+    Ready --> Served: Waiter Delivers to table
+    Served --> Completed: Payment Done
+
+    Completed --> [*]: Order Finished
+
+    note right of Pending
+        Waiting for waiter
+        to review
+    end note
+
+    note right of Preparing
+        Kitchen staff
+        cooking items
+    end note
+
+    note right of Ready
+        Food ready for
+        pickup/delivery
+    end note
 ```
 
 ---
 
-## 4. Local Setup Guide
+## Features
 
-### Prerequisites
-- JDK 17+
-- Maven 3.8+
-- Node.js 18+ and npm
-- MySQL / PostgreSQL (based on application properties)
+- **Digital Menu Management:** Create categories, menu items, and optional modifier groups (e.g., size, toppings, specific request checkboxes).
+- **QR Code Generation:** Generate and download a unique QR code for each dining table.
+- **Contactless Ordering:** Customers scan QR codes, browse menus, customize dishes, and place orders directly from their phones.
+- **Consolidated Session Billing:** Allow customers to add extra items multiple times during their stay and combine them into a single bill.
+- **Kitchen Display System (KDS):** A real-time display queue for kitchen staff to track and prepare orders.
+- **Waiter Order Management:** Real-time order approvals, status tracking, and request-bill handling for table service staff.
+- **Payment Gateway Integration:** Secure payment checkout via e-wallet (MoMo) or cash/card settlement at the counter.
+- **Business Analytics:** Access sales charts, revenue metrics, and top-selling food reports for administrators.
 
-### Running the Backend
 
-1. **Navigate to Backend Directory:**
-   ```bash
-   cd Source/RestaurantBackend
-   ```
-2. **Configure Environment variables:**
-   Update `src/main/resources/application.properties` with your local Database credentials and Momo keys.
-3. **Build and Run:**
-   ```bash
-   mvn clean install -DskipTests
-   mvn spring-boot:run
-   ```
-   The application will start on `http://localhost:8080`.
 
-### Running the Frontend
+## Installation
 
-1. **Navigate to Frontend Directory:**
-   ```bash
-   cd Source/frontend
-   ```
-2. **Install Dependencies:**
-   ```bash
-   npm install
-   ```
-3. **Start the Development Server:**
-   ```bash
-   npm run dev
-   ```
-   The frontend will run on `http://localhost:5173`.
+### 1. Clone Project
+```bash
+git clone https://github.com/huuthang-0355/worldwide-restaurant.git
+cd worldwide-restaurant
+```
+
+### 2. Configure and Run Backend
+Navigate to the backend directory:
+```bash
+cd RestaurantBackend
+```
+Update your local database credentials and MoMo credentials in `src/main/resources/application.properties`:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/db_name
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+Build the project using Maven:
+```bash
+./mvnw.cmd clean install -DskipTests
+```
+Start the Spring Boot backend:
+```bash
+./mvnw.cmd spring-boot:run
+```
+The backend will run at `http://localhost:8080`.
+
+### 3. Configure and Run Frontend
+Navigate to the frontend directory:
+```bash
+cd ../frontend
+```
+Install the package dependencies:
+```bash
+npm install
+```
+Start the Vite development server:
+```bash
+npm run dev
+```
+The frontend will run at `http://localhost:5173`.
 
 ---
 
-## 5. Backend Endpoints
+## Usage
 
-### A. Authentication (Public)
+### Default Admin Account
+- **Email:** `admin@restaurant.com`
+- **Password:** `Admin@123`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/register` | **Register User**<br/>Req: `{"email": "...", "password": "...", "firstName": "..."}`|
-| `POST` | `/api/auth/login` | **Login**<br/>Req: `{"email": "...", "password": "..."}`<br/>Res: `{ "token": "jwt", "role": "ADMIN" }`|
-| `POST` | `/api/auth/verify-email` | **Verify Email**<br/>Req: `{"token": "..."}`|
-| `POST` | `/api/auth/forgot-password`| **Request Password Reset**<br/>Req: `{"email": "..."}`|
-| `POST` | `/api/auth/reset-password` | **Reset Password**<br/>Req: `{"token": "...", "newPassword": "..."}`|
-| `PUT`  | `/api/auth/update-password`| **Update Password (Authenticated)**<br/>Req: `{"currentPassword": "...", "newPassword": "..."}`|
+### User Roles
 
-### B. User & Staff Profiles (Authenticated/Admin)
+| Role | Description |
+| :--- | :--- |
+| **Guest** | Scanning customer who browses the menu, builds carts, and places table orders. |
+| **Customer** | Registered diner who can save favorites and view order history. |
+| **Admin** | Restaurant owner with full configurations (staff, menus, tables, sales reports). |
+| **Waiter** | Service staff who reviews pending orders, sends orders to kitchen, serves items, and clears tables. |
+| **Kitchen Staff** | Chefs who manage the KDS queue, start cooking, and mark orders as ready. |
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/users/profile` | **Get Current Profile**<br/>Res: `{ "email": "...", "role": "WAITER" }`|
-| `PUT` | `/api/users/profile` | **Update Profile**<br/>Req: `{"firstName": "...", "lastName": "..."}`|
-| `POST`| `/api/users/avatar` | **Upload Avatar** (Multipart Data)|
-| `POST`| `/api/users/staff` | **Create Staff Worker (Admin)**<br/>Req: `{"email": "...", "role": "WAITER"}`|
-| `GET` | `/api/users/staff` | **List Staff (Admin)**<br/>Res: `[{"id": "...", "role": "KITCHEN_STAFF"}]`|
-| `PUT` | `/api/users/staff/{id}/status` | **Update Staff Status (Admin)**<br/>Req: `{"status": "INACTIVE"}`|
+---
 
-### C. Sessions & Ordering (Customer)
+## Tech Stack
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/sessions` | **Start Session via QR**<br/>Req: `{"token": "uuid", "guestCount": 2}`<br/>Res: `{ "sessionId": "uuid", "status": "ACTIVE" }`|
-| `GET` | `/api/sessions/{id}` | **Get Session Details**<br/>Res: `{ "cartItems": [], "cartTotal": 0 }`|
-| `POST` | `/api/sessions/{id}/cart/items` | **Add To Cart**<br/>Req: `{"menuItemId": "id", "quantity": 1}`<br/>Res: `Updated Session Object`|
-| `PUT` | `/api/sessions/{id}/cart/items/{itemId}` | **Update Cart Item**<br/>Req: `{"quantity": 2, "specialInstructions": "No ice"}`|
-| `POST` | `/api/sessions/{id}/checkout` | **Checkout Cart**<br/>Req: `{"specialInstructions": "Fast please"}`<br/>Res: `{ "orderId": "uuid", "status": "PENDING" }`|
-| `GET` | `/api/sessions/{id}/bill-preview` | **Preview Bill**<br/>Res: `{"subtotal": 3000, "taxAmount": 300, "totalAmount": 3300 }`|
-| `POST` | `/api/sessions/{id}/request-bill` | **Request Bill**<br/>Res: `{"message": "Bill requested"}`|
+### Core Technologies
 
-### D. Table & QR Management (Admin)
+| Layer | Technologies / Frameworks |
+| :--- | :--- |
+| **Backend** | Java 21, Spring Boot 4.0.2, Spring Security, JPA Hibernate |
+| **Database** | PostgreSQL |
+| **Frontend** | React 19, Vite 7, TailwindCSS 4, Axios, Lucide Icons |
+| **Real-Time** | Server-Sent Events (SSE) via Spring `SseEmitter` & HTML5 `EventSource` |
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/admin/tables` | **Create Table**<br/>Req: `{"tableNumber": "T1", "capacity": 4}`|
-| `GET` | `/api/admin/tables` | **List Tables**<br/>Res: `[{"id": "uuid", "tableNumber": "T1"}]`|
-| `GET` | `/api/admin/tables/{id}` | **Get Table Info**|
-| `PUT` | `/api/admin/tables/{id}` | **Update Table Details**<br/>Req: Optional Update Fields|
-| `PATCH`| `/api/admin/tables/{id}/status` | **Toggle Table Status**<br/>Req: `{"status": "INACTIVE"}`|
-| `DELETE`| `/api/admin/tables/{id}` | **Soft Delete Table**|
-| `POST` | `/api/admin/tables/{id}/qr/generate` | **Generate QR Token**<br/>Res: `{"qrUrl": "http://..."}`|
-| `GET`  | `/api/admin/tables/{id}/qr/download` | **Download QR Image/PDF**<br/>Query: `?format=png`|
+### Primary Dependencies
 
-### E. Menu Management (Admin)
+| Dependency | Purpose / Usage |
+| :--- | :--- |
+| **ZXing** | Table QR Code generation |
+| **Apache PDFBox** | Table invoice PDF exports |
+| **Cloudinary** | Menu photo uploads and cloud hosting |
+| **Spring Boot Mail** | Email notifications and verification token dispatching |
+| **jjwt (0.12.6)** | JSON Web Token user authentication and session management |
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/menu/items` | **Public Guest Menu**<br/>Req Param: `?token=qr_jwt_token`<br/>Res: `[{"id": "...", "name": "Burger"}]`|
-| `GET` | `/api/admin/categories` | **Get All Categories**<br/>Res: `[{"id": "...", "name": "Mains"}]`|
-| `POST`| `/api/admin/categories` | **Create Category**<br/>Req: `{"name": "Steak", "displayOrder": 1}`|
-| `PATCH`|`/api/admin/categories/{id}/status`| **Update Category Status**|
-| `GET` | `/api/admin/menu/items` | **Get All Menu Items**<br/>Res: `[{"id": "...", "price": 10}]`|
-| `POST`| `/api/admin/menu/items` | **Create Menu Item**<br/>Req: `{"name": "Steak", "price": 25.5, "categoryId": "uuid"}`|
-| `PATCH`| `/api/admin/menu/items/{id}`| **Update Menu Item**|
-| `DELETE`| `/api/admin/menu/items/{id}`| **Delete Menu Item**|
-| `POST`| `/api/admin/menu/items/{id}/modifier-groups`| **Link Modifier Groups to Item**<br/>Req: `{"modifierGroupIds": ["uuid-1"]}`|
+---
 
-### F. Modifier Groups Management (Admin)
+## API Documentation
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/admin/menu/modifier-groups` | **Get All Groups**<br/>Res: `[{"name": "Size", "selectionType": "SINGLE"}]`|
-| `POST`| `/api/admin/menu/modifier-groups` | **Create Group**<br/>Req: `{"name": "Add Extras", "selectionType": "MULTIPLE", "options": [...]}`|
-| `PUT` | `/api/admin/menu/modifier-groups/{id}` | **Update Modifier Group**|
-| `POST`| `/api/admin/menu/modifier-groups/{groupId}/options` | **Add Single Option to Group**<br/>Req: `{"name": "Extra Cheese", "priceAdjustment": 1.5}`|
-| `PUT` | `/api/admin/menu/modifier-options/{id}` | **Update Modifier Option**|
+The backend includes Swagger UI to search and test API endpoints:
+- **Interactive UI Docs:** https://worldwide-restaurant-spring.onrender.com/swagger-ui/index.html
+- **OpenAPI Specs (JSON):** https://worldwide-restaurant-spring.onrender.com/v3/api-docs
 
-### G. Kitchen Operations (Kitchen Staff)
+---
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/kitchen/orders` | **List Kitchen Orders**<br/>Res: `[{"orderNumber": "ORD-1", "status": "IN_KITCHEN"}]`|
-| `PATCH` | `/api/kitchen/orders/{id}/status` | **Update Order Status**<br/>Req: `{"status": "PREPARING"}`<br/>Res: `Updated Order`|
+## Author
 
-### H. Waiter Operations (Waiter)
+Võ Hữu Thắng - [GitHub](https://github.com/huuthang-0355)
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/waiter/orders/pending` | **Get Pending Orders**<br/>Res: `[{"orderId": "id", "status": "PENDING"}]`|
-| `PATCH` | `/api/waiter/orders/{oId}/items/{iId}/accept` | **Accept Item**<br/>Res: `Updated Order`|
-| `PATCH` | `/api/waiter/orders/{oId}/items/{iId}/reject` | **Reject Item**<br/>Req: `{"reason": "Out of stock"}`|
-| `POST` | `/api/waiter/orders/{orderId}/send-to-kitchen`| **Send To Kitchen**<br/>Res: `OrderStatus => IN_KITCHEN`|
-| `PATCH` | `/api/waiter/orders/{orderId}/served` | **Mark Served**<br/>Res: `OrderStatus => SERVED`|
-| `GET` | `/api/waiter/bill-requests` | **Get Bill Requests**<br/>Res: `[{"tableNumber": "T1", "status": "BILL_REQUESTED"}]`|
+---
 
-### I. Payments (Public/Admin)
+## Advisor
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/payments/momo/initiate` | **Initiate Momo Payment**<br/>Req: `{"sessionId": "uuid"}`<br/>Res: `{"payUrl": "https://..."}`|
-| `POST` | `/api/payments/momo/callback` | **Momo IPN Callback**<br/>Req: `Standard Momo IPN Payload`|
+Ths. Nguyễn Huy Khánh
