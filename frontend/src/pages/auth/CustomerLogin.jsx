@@ -11,6 +11,8 @@ const SESSION_ID_KEY = "restaurantSessionId";
 /**
  * CustomerLogin - Customer login page
  */
+import logo from "../../assets/logo.svg";
+
 function CustomerLogin() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -91,10 +93,16 @@ function CustomerLogin() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-red-500 to-red-600 flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-primary-500 to-primary-600 flex flex-col">
             {/* Logo Section */}
-            <div className="text-center py-12 px-5">
-                <div className="text-6xl mb-4">🍽️</div>
+            <div className="text-center py-12 px-5 flex flex-col items-center">
+                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center p-4 mb-4 shadow-lg">
+                    <img
+                        src={logo}
+                        alt="Logo"
+                        className="w-full h-full object-contain"
+                    />
+                </div>
                 <h1 className="text-white text-3xl font-bold">
                     Smart Restaurant
                 </h1>

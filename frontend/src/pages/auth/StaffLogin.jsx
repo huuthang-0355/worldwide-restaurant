@@ -4,6 +4,7 @@ import { useAuth } from "../../context/useAuth";
 import { useToast } from "../../context/useToast";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import logo from "../../assets/logo.svg";
 
 /**
  * StaffLogin - Admin/Staff login page
@@ -80,7 +81,13 @@ function StaffLogin() {
             <div className="max-w-md w-full">
                 {/* Logo Section */}
                 <div className="text-center mb-10">
-                    <div className="text-5xl mb-4">🍽️</div>
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3.5 mb-4 shadow-md mx-auto">
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
                     <h1 className="text-2xl font-bold text-gray-800">
                         Smart Restaurant
                     </h1>

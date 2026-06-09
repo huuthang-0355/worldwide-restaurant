@@ -5,6 +5,7 @@ import { useToast } from "../../context/useToast";
 import authService from "../../services/authService";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import logo from "../../assets/logo.svg";
 
 /**
  * ForgotPassword - Request password reset link
@@ -60,7 +61,13 @@ function ForgotPassword({ variant = "customer" }) {
             <div className={`min-h-screen ${bgClass} flex items-center justify-center py-12 px-4`}>
                 <div className="max-w-md w-full">
                     <div className="text-center mb-10">
-                        <div className="text-5xl mb-4">🍽️</div>
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3.5 mb-4 shadow-md mx-auto">
+                            <img
+                                src={logo}
+                                alt="Logo"
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
                         <h1 className={`text-2xl font-bold ${isStaff ? "text-gray-800" : "text-white"}`}>
                             Smart Restaurant
                         </h1>
@@ -107,7 +114,13 @@ function ForgotPassword({ variant = "customer" }) {
             <div className="max-w-md w-full">
                 {/* Logo Section */}
                 <div className="text-center mb-10">
-                    <div className="text-5xl mb-4">🍽️</div>
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3.5 mb-4 shadow-md mx-auto">
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
                     <h1 className={`text-2xl font-bold ${isStaff ? "text-gray-800" : "text-white"}`}>
                         Smart Restaurant
                     </h1>

@@ -6,6 +6,7 @@ import authService from "../../services/authService";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { User, Mail, Lock, CheckCircle, ArrowLeft } from "lucide-react";
+import logo from "../../assets/logo.svg";
 
 /**
  * CustomerRegister - Customer registration page
@@ -145,8 +146,14 @@ function CustomerRegister() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary-500 to-primary-600 flex flex-col">
             {/* Logo Section */}
-            <div className="text-center py-8 px-5">
-                <div className="text-5xl mb-2">🍽️</div>
+            <div className="text-center py-8 px-5 flex flex-col items-center">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3.5 mb-3 shadow-lg">
+                    <img
+                        src={logo}
+                        alt="Logo"
+                        className="w-full h-full object-contain"
+                    />
+                </div>
                 <h1 className="text-white text-2xl font-bold">
                     Smart Restaurant
                 </h1>

@@ -4,6 +4,7 @@ import { User } from "lucide-react";
 import { useCustomerMenu } from "../../context/useCustomerMenu";
 import { AuthContext } from "../../context/AuthContext";
 import BottomNav from "./BottomNav";
+import logo from "../../assets/logo.svg";
 
 /**
  * CustomerLayout — mobile-first shell for customer-facing pages.
@@ -19,8 +20,17 @@ function CustomerLayout() {
     return (
         <div className="max-w-97.5 mx-auto bg-white min-h-screen relative shadow-lg">
             {/* Header */}
-            <div className="bg-primary-500 text-white px-5 py-5 flex items-center justify-between">
-                <span className="text-xl font-bold">Smart Restaurant</span>
+            <div className="bg-primary-500 text-white px-5 py-4 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1.5 shadow-sm">
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
+                    <span className="text-xl font-bold">Smart Restaurant</span>
+                </div>
                 <div className="flex items-center gap-3">
                     <span className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-medium">
                         {tableInfo?.tableNumber || "Table"}

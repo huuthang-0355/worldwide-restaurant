@@ -2,17 +2,17 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
     LayoutDashboard,
     ClipboardList,
-    Utensils,
     FolderOpen,
     Settings2,
     Users,
     Monitor,
     LogOut,
     LayoutGrid,
-    User,
+    Utensils,
 } from "lucide-react";
 import Badge from "../ui/Badge";
 import { useAuth } from "../../context/useAuth";
+import logo from "../../assets/logo.svg";
 
 /**
  * AdminSidebar - Refactored navigation sidebar with lucide icons
@@ -35,8 +35,14 @@ function AdminSidebar() {
         <div className="w-64 bg-primary-600 border-r border-primary-700 flex flex-col shadow-sm">
             {/* Logo */}
             <div className="p-4 border-b border-primary-700">
-                <div className="flex items-center gap-2">
-                    <Utensils className="w-8 h-8 text-white" />
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1.5 shadow-sm">
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
                     <span className="text-xl font-bold text-white">
                         Smart Restaurant
                     </span>
